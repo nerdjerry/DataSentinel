@@ -1,5 +1,18 @@
+from pydantic import BaseModel
 from autogen_agentchat.agents import AssistantAgent
 from model.ModelFactory import ModelFactory
+
+class DataQualityIssue(BaseModel):
+    type: str  # e.g., "Missing Values", "Type Mismatch"
+    severity: str  # One of "Critical", "High", "Medium", "Low"
+    evidence_query: str  # The SQL query used to gather evidence
+    evidence_description: str  # Description of the evidence found
+class DataQualityAgentReport(BaseModel):
+    summary: str  # One-paragraph high-level assessment
+    issues: list[DataQualityIssue]  # List of data quality issues
+    recommendations: list[str]  # Ordered remediation steps with estimated priority and impact
+    required_followup_queries: list[str]  # List of SQL queries to run for deeper investigation (if any)
+    analysis_complete: bool  # Flag to indicate if analysis is complete
 
 class DataQualityAgent:
     def __init__(self, name="DataQualityAgent", description=None):
@@ -28,12 +41,14 @@ class DataQualityAgent:
                     "summary": "One-paragraph high-level assessment.",
                     "issues": "List of objects {type, severity (Critical/High/Medium/Low), evidence_query, evidence_description}.",
                     "recommendations": "Ordered remediation steps with estimated priority and impact.",
-                    "required_followup_queries": "List of SQL queries to run for deeper investigation (if any)."
+                    "required_followup_queries": "List of SQL queries to run for deeper investigation (if any).",
+                    "analysis_complete": "Boolean flag to indicate if analysis is complete."
                 },
                 "security_privacy": "Never expose credentials, secrets, or PII in outputs.",
                 "insufficient_data_rule": "If data is insufficient to conclude, ask for a specific follow-up query (exact SQL) rather than guessing."
                 }
-                }"""
+                }""",
+                output_content_type=DataQualityAgentReport
         )
 
     def get_agent(self):

@@ -32,7 +32,7 @@ from snowflake.connector import DictCursor
 from dotenv import load_dotenv
 
 
-class SnowflakeQueryTool:
+class SnowflakeQueryEngine:
     """
     A tool class for executing queries against Snowflake database.
     
@@ -187,7 +187,7 @@ class SnowflakeQueryTool:
         self, 
         query: str, 
         goal: str = "",
-        return_format: str = "dict"
+        return_format: str = "dataframe"
     ) -> Dict[str, Any]:
         """
         Execute a SQL query against the Snowflake database.

@@ -1,4 +1,4 @@
-from SnowflakeQueryTool import SnowflakeQueryTool
+from agent.tool.SnowflakeQueryEngine import SnowflakeQueryEngine
 
 if __name__ == "__main__":
     """
@@ -6,8 +6,8 @@ if __name__ == "__main__":
     """
     try:
         # Create tool instance
-        tool = SnowflakeQueryTool()
-        
+        tool = SnowflakeQueryEngine()
+
         # Test connection
         print("Testing Snowflake connection...")
         connection_result = tool.test_connection()

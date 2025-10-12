@@ -60,7 +60,7 @@ class SnowflakeQueryEngine:
         self._connection = None
         
         # Set up logging
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.ERROR)
         self.logger = logging.getLogger(__name__)
     
     def _load_connection_params(self) -> Dict[str, Any]:

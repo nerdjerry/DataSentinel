@@ -1,6 +1,21 @@
-snowflake-connector-python>=3.12.0
-pandas>=1.5.0
-autogen-core>=0.7.0
-autogen-agentchat>=0.7.0
-python-dotenv
-autogen-ext[openai]
+# DataSentinel - Data Quality and Profiling Platform
+# Core dependencies for AutoGen multi-agent system with Snowflake integration
+
+# AutoGen Framework - Multi-agent orchestration
+autogen-core==0.7.5
+autogen-agentchat==0.7.5
+autogen-ext[openai]==0.7.5
+
+# Snowflake Database Integration
+snowflake-connector-python==3.18.0
+snowflake-sqlalchemy==1.7.7
+
+# Data Analysis and Profiling
+pandas==2.3.3
+ydata-profiling==4.17.0
+
+# Environment Configuration
+python-dotenv==1.1.1
+
+# Note: All transitive dependencies (numpy, scipy, matplotlib, etc.) 
+# will be automatically installed by pip based on the above packages

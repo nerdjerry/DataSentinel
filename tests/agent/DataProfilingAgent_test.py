@@ -89,10 +89,10 @@ async def main():
     """Run all agent tests."""
     try:
         # Test basic profiling
-        #await test_profiling_agent()
+        await test_profiling_agent()
         
         # Uncomment to test custom query profiling
-        await test_custom_query_profiling()
+        # await test_custom_query_profiling()
         
     except Exception as e:
         print(f"\n✗ Test failed with error: {str(e)}")

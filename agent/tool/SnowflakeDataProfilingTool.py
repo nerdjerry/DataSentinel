@@ -68,7 +68,7 @@ class SnowflakeDataProfilingTool:
         self.query_engine = SnowflakeQueryEngine()
         
         # Set up logging
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.ERROR)
         self.logger = logging.getLogger(__name__)
         
         # Create reports directory

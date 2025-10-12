@@ -55,16 +55,23 @@ async def test_custom_query_profiling():
     Profile the daily booking statistics using this query:
     
     SELECT 
-        DATE_TRUNC('day', BOOKING_DATE) as booking_day,
+        DATE as booking_date,
         COUNT(*) as total_bookings,
-        AVG(FARE_AMOUNT) as avg_fare,
-        SUM(FARE_AMOUNT) as total_revenue
+        AVG(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as avg_booking_value,
+        SUM(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as total_revenue,
+        AVG(TRY_CAST(RIDE_DISTANCE AS DECIMAL(10,2))) as avg_distance,
+        COUNT(DISTINCT CUSTOMER_ID) as unique_customers,
+        COUNT(CASE WHEN BOOKING_VALUE IS NULL OR BOOKING_VALUE = 'null' THEN 1 END) as null_booking_values,
+        COUNT(CASE WHEN RIDE_DISTANCE IS NULL OR RIDE_DISTANCE = 'null' THEN 1 END) as null_distances
     FROM RIDEBOOKING
-    WHERE BOOKING_DATE >= DATEADD(day, -30, CURRENT_DATE())
-    GROUP BY DATE_TRUNC('day', BOOKING_DATE)
-    ORDER BY booking_day DESC
+    WHERE DATE IS NOT NULL
+    GROUP BY DATE
+    ORDER BY DATE DESC
+    LIMIT 30
     
     Analyze the data quality of this aggregated view and identify any patterns or issues.
+    Focus on booking trends, revenue patterns, and customer activity.
+    Pay special attention to null values and data quality issues.
     """
     
     print(f"\nTask: {task}\n")
@@ -81,10 +88,10 @@ async def main():
     """Run all agent tests."""
     try:
         # Test basic profiling
-        await test_profiling_agent()
+        #await test_profiling_agent()
         
         # Uncomment to test custom query profiling
-        # await test_custom_query_profiling()
+        await test_custom_query_profiling()
         
     except Exception as e:
         print(f"\n✗ Test failed with error: {str(e)}")

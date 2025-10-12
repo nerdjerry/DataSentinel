@@ -87,17 +87,24 @@ def test_custom_query_profiling():
     
     tool = SnowflakeDataProfilingTool(reports_dir="ge_reports")
     
-    # Profile an aggregated query
+    # Profile an aggregated query using actual column names from RIDEBOOKING table
+    # Columns: DATE, BOOKING_VALUE, RIDE_DISTANCE, etc.
+    # Using TRY_CAST to handle 'null' string values safely
     query = """
     SELECT 
-        DATE_TRUNC('day', BOOKING_DATE) as booking_day,
+        DATE as booking_date,
         COUNT(*) as total_bookings,
-        AVG(FARE_AMOUNT) as avg_fare,
-        SUM(FARE_AMOUNT) as total_revenue
+        AVG(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as avg_booking_value,
+        SUM(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as total_revenue,
+        AVG(TRY_CAST(RIDE_DISTANCE AS DECIMAL(10,2))) as avg_distance,
+        COUNT(DISTINCT CUSTOMER_ID) as unique_customers,
+        COUNT(CASE WHEN BOOKING_VALUE IS NULL OR BOOKING_VALUE = 'null' THEN 1 END) as null_booking_values,
+        COUNT(CASE WHEN RIDE_DISTANCE IS NULL OR RIDE_DISTANCE = 'null' THEN 1 END) as null_distances
     FROM RIDEBOOKING
-    WHERE BOOKING_DATE >= DATEADD(day, -30, CURRENT_DATE())
-    GROUP BY DATE_TRUNC('day', BOOKING_DATE)
-    ORDER BY booking_day DESC
+    WHERE DATE IS NOT NULL
+    GROUP BY DATE
+    ORDER BY DATE DESC
+    LIMIT 30
     """
     
     result = tool.profile_data(

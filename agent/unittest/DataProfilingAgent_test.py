@@ -3,8 +3,9 @@ import sys
 import os
 from pathlib import Path
 
-# Add parent directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 from autogen_agentchat.ui import Console
 from agent.DataProfilingAgent import DataProfilingAgent

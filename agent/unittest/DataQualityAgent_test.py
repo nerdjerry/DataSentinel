@@ -1,10 +1,17 @@
 import asyncio
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
 from autogen_agentchat.ui import Console
-from DataQualityAgent import DataQualityAgent
-from DataQualityAgent import DataQualityAgentReport, DataQualityIssue
-from DataAgent import DataAgent
-from ReportAgent import ReportAgent
-from ReportAgent import ReportResponse
+from agent.DataQualityAgent import DataQualityAgent
+from agent.DataQualityAgent import DataQualityAgentReport, DataQualityIssue
+from agent.DataAgent import DataAgent
+from agent.ReportAgent import ReportAgent
+from agent.ReportAgent import ReportResponse
 from autogen_agentchat.messages import StructuredMessage
 from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.conditions import MaxMessageTermination

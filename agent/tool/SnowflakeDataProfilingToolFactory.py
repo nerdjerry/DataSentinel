@@ -1,4 +1,4 @@
-from tool.SnowflakeDataProfilingTool import SnowflakeDataProfilingTool
+from agent.tool.SnowflakeDataProfilingTool import SnowflakeDataProfilingTool
 from autogen_core.tools import FunctionTool
 
 class SnowflakeDataProfilingToolFactory:

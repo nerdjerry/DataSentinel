@@ -1,4 +1,4 @@
-from tool.SnowflakeQueryEngine import SnowflakeQueryEngine
+from agent.tool.SnowflakeQueryEngine import SnowflakeQueryEngine
 from autogen_core.tools import FunctionTool
 
 class SnowflakeQueryToolFactory:

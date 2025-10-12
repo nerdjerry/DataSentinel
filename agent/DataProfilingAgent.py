@@ -1,6 +1,6 @@
-from tool.SnowflakeDataProfilingToolFactory import SnowflakeDataProfilingToolFactory
+from agent.tool.SnowflakeDataProfilingToolFactory import SnowflakeDataProfilingToolFactory
 from autogen_agentchat.agents import AssistantAgent
-from model.ModelFactory import ModelFactory
+from agent.model.ModelFactory import ModelFactory
 
 
 class DataProfilingAgent:

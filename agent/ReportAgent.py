@@ -1,5 +1,5 @@
 from autogen_agentchat.agents import AssistantAgent
-from model.ModelFactory import ModelFactory
+from agent.model.ModelFactory import ModelFactory
 from pydantic import BaseModel
 
 class ReportResponse(BaseModel):

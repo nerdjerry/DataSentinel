@@ -1,6 +1,6 @@
-from tool.SnowflakeQueryToolFactory import SnowflakeQueryToolFactory
+from agent.tool.SnowflakeQueryToolFactory import SnowflakeQueryToolFactory
 from autogen_agentchat.agents import AssistantAgent
-from model.ModelFactory import ModelFactory
+from agent.model.ModelFactory import ModelFactory
 
 class DataAgent:
     def __init__(self, name="DataAgent", description=None):

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from autogen_agentchat.agents import AssistantAgent
-from model.ModelFactory import ModelFactory
+from agent.model.ModelFactory import ModelFactory
 
 class DataQualityIssue(BaseModel):
     type: str  # e.g., "Missing Values", "Type Mismatch"

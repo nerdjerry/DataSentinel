@@ -9,8 +9,9 @@ import sys
 import os
 from pathlib import Path
 
-# Add parent directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 from agent.tool.SnowflakeDataProfilingTool import SnowflakeDataProfilingTool
 

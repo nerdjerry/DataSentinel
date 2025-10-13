@@ -4,6 +4,8 @@ from agent.model.ModelFactory import ModelFactory
 import json
 import os
 
+from agent.tool import ProfilingReportReaderToolFactory
+
 class DataQualityIssue(BaseModel):
     type: str  # e.g., "Missing Values", "Type Mismatch"
     severity: str  # One of "Critical", "High", "Medium", "Low"
@@ -17,13 +19,17 @@ class DataQualityAgentReport(BaseModel):
     analysis_complete: bool  # Flag to indicate if analysis is complete
 
 class SummarizerAgent:
-    def __init__(self, name="SummarizerAgent", description=None):
+    def __init__(self, name="SummarizerAgent", system_message=None):
         self.model = ModelFactory.get_model()
+        self.profile_reader_factory = ProfilingReportReaderToolFactory(reports_dir="ge_reports")
         self.schema = self._get_schema()
+        self.tools = [self.profile_reader_factory.create_read_tool()]
         self.agent = AssistantAgent(
             name=name,
             model_client=self.model,
-            description=description or 
+            description="Summarizer Agent for Data Quality Issue Reporting",
+            tools=self.tools,
+            system_message=system_message or 
             f"""{{
             "role": "You are the SummarizerAgent. Your purpose is to summarize data quality by combining data samples from DataAgent and profiling statistics from ProfilingAgent to produce comprehensive issue reports.",
             
@@ -37,6 +43,7 @@ class SummarizerAgent:
             "analysis_workflow": [
                 "Request data sample from DataAgent",
                 "Request profiling statistics from ProfilingAgent",
+                "Use tools to read JSON profiling reports",
                 "Cross-reference data samples with statistical profiles",
                 "Identify discrepancies between expected and actual patterns",
                 "Generate comprehensive issue report"
@@ -51,16 +58,16 @@ class SummarizerAgent:
                 "Cross-validate referential integrity issues"
             ],
             "output_format": {{
-            "summary": "One-paragraph synthesis of findings from both data and profiling analysis.",
-            "issues": "List of objects {{type, severity (Critical/High/Medium/Low), evidence_query, evidence_description}} combining insights from both agents.",
-            "recommendations": "Prioritized remediation steps based on combined data and statistical evidence.",
-            "required_followup_queries": "List of SQL queries for deeper investigation based on findings.",
-            "analysis_complete": "Boolean flag indicating if both data and profiling analysis are complete."
+                "summary": "One-paragraph synthesis of findings from both data and profiling analysis.",
+                "issues": "List of objects {{type, severity (Critical/High/Medium/Low), evidence_query, evidence_description}} combining insights from both agents.",
+                "recommendations": "Prioritized remediation steps based on combined data and statistical evidence.",
+                "required_followup_queries": "List of SQL queries for deeper investigation based on findings.",
+                "analysis_complete": "Boolean flag indicating if both data and profiling analysis are complete."
             }},
             "collaboration_rules": [
-            "Always correlate DataAgent findings with ProfilingAgent statistics",
-            "Use profiling metrics to validate data sample observations",
-            "Leverage statistical baselines to identify anomalies in data samples"
+                "Always correlate DataAgent findings with ProfilingAgent statistics",
+                "Use profiling metrics to validate data sample observations",
+                "Leverage statistical baselines to identify anomalies in data samples"
             ],
             "security_privacy": "Never expose credentials, secrets, or PII in outputs."
             }}

@@ -54,7 +54,7 @@ class PlannerAgent:
             model_client=self.model,
             description="Planner Agent for Data Quality Analysis",
             system_message=system_message or self._system_message(),
-            model_client_stream=True,
+            model_client_stream=False,  # Disable streaming for structured output
             reflect_on_tool_use=False,  # Planner doesn't use tools, it creates plans
             output_content_type=DataQualityPlan
         )
@@ -82,97 +82,34 @@ class PlannerAgent:
         schema_json = json.dumps(self.schema, indent=2) if self.schema else "{}"
         
         return f"""{{
-            "role": "You are the Planner Agent. Given a data quality goal, you create a comprehensive execution plan with specific tasks for DataAgent (SQL queries) and DataProfilingAgent (data profiling).",
-            
+            "role": "You are the Planner Agent. Given a data quality goal and database_schema, create a structured execution plan with tasks for DataAgent (SQL investigations) and DataProfilingAgent (profiling analysis).",
+
             "database_schema": {schema_json},
-            
+
             "responsibilities": [
-                "Analyze data quality goals and break them into actionable tasks",
-                "Generate high-level investigation goals for DataAgent (DataAgent will create SQL queries)",
-                "Generate profiling requests for DataProfilingAgent to analyze patterns (DataProfilingAgent will create SQL queries)",
-                "Sequence tasks for optimal analysis flow",
-                "Define clear success criteria for the goal"
-            ],
-        
-            "planning_process": {{
-                "step_1_understand_goal": "Parse the data quality goal and identify what needs to be validated or analyzed",
-                "step_2_identify_columns": "Determine which columns are relevant based on the schema - ONLY use columns that exist in database_schema",
-                "step_3_plan_investigation_goals": "Design high-level investigation goals for DataAgent (DataAgent will determine the SQL)",
-                "step_4_plan_profiling": "Design profiling Snowflake queries to understand distributions, patterns, correlations",
-                "step_5_sequence_tasks": "Order tasks logically (typically: basic investigation → profiling → detailed investigation)",
-                "step_6_define_success": "Specify measurable criteria to determine if goal is achieved"
-            }},
-        
-            "investigation_goal_guidelines": [
-                "CRITICAL: Only reference columns that exist in the database_schema provided above",
-                "Start with basic data existence checks (e.g., 'Find how many null BOOKING_VALUE records exist')",
-                "Progress to validation checks (e.g., 'Identify any negative or zero booking values')",
-                "Request data samples when needed (e.g., 'Get 10 sample records with missing values')",
-                "Ask for aggregations to find patterns (e.g., 'Count cancellations by vehicle type')",
-                "Focus on specific columns mentioned in the goal that exist in the schema",
-                "Let DataAgent determine the best SQL approach - don't prescribe queries"
-            ],
-        
-            "profiling_design_guidelines": [
-                "CRITICAL: Only profile columns that exist in the database_schema provided above",
-                "Profile full tables when understanding overall data quality",
-                "Profile filtered subsets when investigating specific issues",
-                "Profile aggregated results when analyzing trends",
-                "Focus on specific columns when investigating targeted issues",
-                "Request correlation analysis when looking for relationships"
-            ],
-        
-            "known_data_quality_issues": [
-            {quality_notes_text}
-            ],
-        
-            "task_sequencing_rules": [
-                "Start with basic data existence checks (row counts, null checks)",
-                "Profile before detailed analysis to understand distributions",
-                "Run targeted investigations after profiling reveals specific issues",
-                "Parallel tasks: Multiple independent investigations or profiles can run together",
-                "Sequential tasks: Investigations that depend on previous results must run after"
-            ],
-        
-            "output_format": {{
-            "goal": "The original data quality goal from the user",
-            "query_tasks": [
-                {{
-                "goal": "Check for null values in BOOKING_VALUE",
-                }}
-            ],
-            "profiling_tasks": [
-                {{
-                "goal": "Profile the BOOKING_VALUE column in RIDEBOOKING table",
-                }}
-            ],
-            "execution_sequence": [
-                "investigation_1: Check for null values in BOOKING_VALUE",
-                "profile_1: Profile BOOKING_VALUE distribution",
-                "investigation_2: Identify outliers beyond 3 standard deviations"
-            ],
-            "success_criteria": [
-                "No more than 5% null values in critical columns",
-                "All booking values are positive",
-                "Distribution follows expected pattern"
-            ],
-            "reasoning": "Explanation of why this plan addresses the goal"
-            }},
-            
-            "constraints": [
-                "MANDATORY: Only use column names that exist in the database_schema provided above",
-                "MANDATORY: Before referencing any column, verify it exists in database_schema",
-                "All investigations focus on the RIDEBOOKING table",
-                "Mention known data issues (like 'null' strings) so DataAgent can handle them properly",
-                "Each task should have ONE clear purpose",
-                "Plans should be comprehensive but not overwhelming (3-7 tasks total)",
-                "Goals should be descriptive but not prescriptive - let DataAgent determine SQL approach",
-                "Focus on WHAT to investigate, not HOW to query it"
+                "Break down the data quality goal into actionable tasks using only columns from database_schema",
+                "Define 3–4 investigation goals for DataAgent and 1 profiling goal for DataProfilingAgent",
+                "Sequence tasks logically and define measurable success criteria"
             ],
 
-            "termination_condition": "The plan is complete when it includes all necessary tasks to achieve the goal, follows the guidelines, and adheres to constraints.",
-            
-            "security_privacy": "Never expose credentials, secrets, or PII in plans or outputs."
+            "query_tasks": [
+                {{ "goal": "Check for null values in critical columns like BOOKING_VALUE" }},
+                {{ "goal": "Identify negative or zero BOOKING_VALUE records" }},
+                {{ "goal": "Find duplicate BOOKING_ID entries" }},
+                {{ "goal": "Detect inconsistent date ranges between BOOKING_DATE and TRAVEL_DATE" }}
+            ],
+
+            "profiling_tasks": [
+                {{ "goal": "Profile the BOOKING_VALUE column to understand its distribution and outliers" }}
+            ],
+
+            "constraints": [
+                "Use only valid columns from database_schema",
+                "Focus on what to analyze, not how to query",
+                "Maintain privacy—never expose credentials or sensitive data"
+            ],
+
+            "termination_condition": "The plan is complete when it includes required DataAgent and profiling goals, follows schema rules, and meets success criteria."
         }}"""
     
     def get_agent(self):

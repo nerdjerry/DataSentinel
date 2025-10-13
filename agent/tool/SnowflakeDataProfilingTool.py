@@ -80,11 +80,11 @@ class SnowflakeDataProfilingTool:
     def profile_data(
         self,
         query: str,
-        table_name: str = "data_table",
-        goal: str = "",
-        generate_html: bool = True,
-        generate_json: bool = True,
-        minimal_mode: bool = False
+        table_name: str,
+        goal: str,
+        generate_html: bool,
+        generate_json: bool,
+        minimal_mode: bool
     ) -> Dict[str, Any]:
         """
         Profile a dataset from a Snowflake query using ydata-profiling.
@@ -110,7 +110,7 @@ class SnowflakeDataProfilingTool:
                 self.logger.info(f"Profiling goal: {goal}")
             
             # Execute query to get data
-            query_result = self.query_engine.execute_query(query, goal)
+            query_result = self.query_engine.execute_query(query, goal, "dataframe")
             
             if not query_result['success']:
                 return {

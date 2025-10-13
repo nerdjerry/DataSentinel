@@ -2,10 +2,6 @@ import asyncio
 import sys
 from pathlib import Path
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 from agent.PlannerAgent import PlannerAgent
 from autogen_agentchat.ui import Console
 
@@ -18,7 +14,7 @@ async def test_planner_basic():
     
     planner = PlannerAgent().get_agent()
     
-    goal = "Check if booking values are reliable for revenue calculations"
+    goal = "Highlight 1 data quality issue in RIDEBOOKING table and suggest a fix"
     
     print(f"\nData Quality Goal: {goal}\n")
     print("-" * 80)
@@ -90,60 +86,15 @@ async def test_planner_driver_performance():
     await Console(planner.run_stream(task=goal))
 
 
-
-async def test_planner_interactive():
-    """Test planner with interactive console"""
-    print("\n\n" + "=" * 80)
-    print("Testing PlannerAgent - Interactive Mode")
-    print("=" * 80)
-    
-    planner = PlannerAgent().get_agent()
-    
-    goal = "Find data quality issues that could affect business decisions about pricing and vehicle allocation"
-    
-    print(f"\nData Quality Goal: {goal}\n")
-    print("-" * 80)
-    
-    await Console(planner.run_stream(task=goal))
-    
-    print("\n" + "=" * 80)
-
-
-async def test_planner_custom_goal():
-    """Test planner with custom user-provided goal"""
-    print("\n\n" + "=" * 80)
-    print("Testing PlannerAgent - Custom Goal")
-    print("=" * 80)
-    
-    planner = PlannerAgent().get_agent()
-    
-    # You can change this goal to test different scenarios
-    goal = "Validate that payment methods are correctly recorded and identify any suspicious patterns"
-    
-    print(f"\nData Quality Goal: {goal}\n")
-    print("-" * 80)
-    
-    result = await planner.run(task=goal)
-    
-    print("\n\nPlanner's Analysis Plan:")
-    print("=" * 80)
-    print(result.messages[-1].content)
-    print("=" * 80)
-
-
 async def main():
     """Run all planner tests"""
     try:
         # Run tests sequentially
-        await test_planner_basic()
+        # await test_planner_basic()
         # await test_planner_cancellation()
-        # await test_planner_correlations()
+        await test_planner_correlations()
         # await test_planner_missing_data()
         # await test_planner_driver_performance()
-        # await test_planner_custom_goal()
-        
-        # Uncomment for interactive test
-        # await test_planner_interactive()
         
         print("\n\n" + "=" * 80)
         print("✓ All Planner Tests Completed!")

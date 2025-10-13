@@ -3,10 +3,6 @@ import sys
 import os
 from pathlib import Path
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
-
 from autogen_agentchat.ui import Console
 from agent.DataProfilingAgent import DataProfilingAgent
 
@@ -22,15 +18,7 @@ async def test_profiling_agent():
     
     # Test task: Profile the RIDEBOOKING table
     task = """
-    Profile the RIDEBOOKING table in Snowflake. 
-    Get a sample of 100 rows and analyze the data quality.
-    Generate both HTML and JSON reports.
-    
-    Provide:
-    1. Summary of the dataset (rows, columns)
-    2. Data quality metrics (null counts, data types)
-    3. Key findings or issues discovered
-    4. Paths to the generated reports
+    Profile distributions and descriptive statistics for RIDE_DISTANCE, BOOKING_VALUE, and CUSTOMER_RATING: count, nulls, min, max, mean, median, stddev, 5/25/75/95 percentiles and histograms; apply TRY_CAST for numeric casts where needed.
     """
     
     print(f"\nTask: {task}\n")

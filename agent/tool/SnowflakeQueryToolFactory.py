@@ -18,7 +18,8 @@ class SnowflakeQueryToolFactory:
         try:
             return FunctionTool(
                 self.snowflake_instance.execute_query,
-                description="Execute SQL queries on Snowflake database. Returns structured data with success status, results, and metadata."
+                description="Execute SQL queries on Snowflake database. Returns structured data with success status, results, and metadata.",
+                strict=True
             )
         except ImportError:
             raise ImportError("autogen-core is required. Install with: pip install autogen-core")
@@ -33,7 +34,8 @@ class SnowflakeQueryToolFactory:
         try:
             return FunctionTool(
                 self.snowflake_instance.get_table_info,
-                description="Get detailed information about a Snowflake table including column names, data types, and metadata."
+                description="Get detailed information about a Snowflake table including column names, data types, and metadata.",
+                strict=True
             )
         except ImportError:
             raise ImportError("autogen-core is required. Install with: pip install autogen-core")
@@ -48,7 +50,8 @@ class SnowflakeQueryToolFactory:
         try:
             return FunctionTool(
                 self.snowflake_instance.list_tables,
-                description="List all tables in a Snowflake schema/database with metadata including row counts and table types."
+                description="List all tables in a Snowflake schema/database with metadata including row counts and table types.",
+                strict=True
             )
         except ImportError:
             raise ImportError("autogen-core is required. Install with: pip install autogen-core")

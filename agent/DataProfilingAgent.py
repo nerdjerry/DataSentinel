@@ -13,7 +13,7 @@ class DataProfilingTasksExecuted(BaseModel):
     row_count: int  # Number of rows profiled
     column_count: int  # Number of columns profiled
     html_report_path: str  # Path to generated HTML report
-    json_report: Dict[str, Any]  # The complete JSON report content
+    json_report_path: str  # Path to generated JSON report
 
 class DataProfilingReport(BaseModel):
     """Complete report from DataProfilingAgent after executing profiling tasks"""
@@ -26,13 +26,13 @@ class DataProfilingAgent:
     A specialized agent for data profiling and quality assessment using ydata-profiling.
     
     This agent can:
-    - Profile datasets from Snowflake queries
+    - Profile datasets
     - Generate comprehensive interactive HTML and JSON reports
     - Analyze data quality metrics, correlations, and distributions
     - Provide insights on data patterns and anomalies
     """
-    
-    def __init__(self, name="DataProfilingAgent", description=None, reports_dir="ge_reports"):
+
+    def __init__(self, name="DataProfilingAgent", system_message=None, reports_dir="ge_reports"):
         """
         Initialize the DataProfilingAgent.
         
@@ -44,27 +44,26 @@ class DataProfilingAgent:
         self.profiling_tool_factory = SnowflakeDataProfilingToolFactory(reports_dir=reports_dir)
         self.model = ModelFactory.get_model()
         self.tools = [
-            self.profiling_tool_factory.create_profile_tool(),
-            self.profiling_tool_factory.create_connection_test_tool()
+            self.profiling_tool_factory.create_profile_tool()
         ]
         self.schema = self._get_schema()
         self.agent = AssistantAgent(
             name=name,
             tools=self.tools,
             model_client=self.model,
-            description=description or self._default_description(),
+            description="Data Profiling Agent for analyzing data quality and generating reports",
+            system_message=system_message or self._system_message(),
             model_client_stream=True,
-            reflect_on_tool_use=True,
-            output_content_type=DataProfilingReport,
-            tool_call_summary_format="{% if tool_error is defined %}Error: {{ tool_error }}{% else %}Success{% endif %}"
+            reflect_on_tool_use=False,  # Disabled to prevent multiple JSON outputs with structured output
+            output_content_type=DataProfilingReport
         )
     
-    def _default_description(self) -> str:
+    def _system_message(self) -> str:
         """Return the default agent description/system prompt."""
         schema_info = json.dumps(self.schema, indent=2) if self.schema else "No schema available"
         
         return f"""{{
-            "role": "You are a Data Profiling Agent with access to Snowflake databases and ydata-profiling tools. Your responsibility is to profile datasets, analyze data quality, and generate comprehensive interactive reports.",
+            "role": "You are a Data Profiling Agent with access to ydata-profiling tools. Your responsibility is to profile datasets and generate comprehensive interactive reports.",
             
             "database_schema": {schema_info},
             
@@ -89,20 +88,18 @@ class DataProfilingAgent:
                 "Construct an appropriate SQL query to retrieve the data (or use the user's provided query).",
                 "Use the profile_data tool to analyze the dataset.",
                 "Review the generated metrics including null counts, data types, distributions, and quality scores.",
-                "Load the JSON report content from the generated file path.",
                 "Summarize key findings from the profiling results.",
                 "Highlight any data quality issues discovered (high null rates, type inconsistencies, etc.).",
-                "Provide the path to the HTML report and include the complete JSON report content in the output.",
+                "Provide the paths to both HTML and JSON reports.",
                 "Offer insights and recommendations based on the profiling results."
             ],
             
             "output_format": {{
-                "description": "You must structure your final response as a DataProfilingReport with the following fields:",
-                "required_fields": {{
-                    "plan_goal": "A clear statement of the original profiling objective and what you aimed to accomplish.",
-                    "tasks_executed": "A list of DataProfilingTasksExecuted objects, where each contains: task_purpose (why the profiling was performed), query_or_dataset (the SQL query or dataset name), row_count (number of rows profiled), column_count (number of columns profiled), html_report_path (path to the HTML report), json_report (the complete JSON report content as a dictionary, not just the path).",
-                    "next_steps": "A list of recommended follow-up actions based on the profiling results, such as data quality improvements, further analysis, or remediation steps."
-                }},
+            "required_fields": {{
+                "plan_goal": "A clear statement of the original profiling objective and what you aimed to accomplish.",
+                "tasks_executed": "A list of DataProfilingTasksExecuted objects, where each contains: task_purpose (why the profiling was performed), query_or_dataset (the SQL query or dataset name), row_count (number of rows profiled), column_count (number of columns profiled), html_report_path (path to the HTML report), json_report_path (path to the JSON report file).",
+                "next_steps": "A list of recommended follow-up actions based on the profiling results, such as data quality improvements, further analysis, or remediation steps."
+            }},
             "example_structure": {{
                 "plan_goal": "Profile the customer transactions table to assess data quality and identify anomalies",
                 "tasks_executed": [
@@ -112,27 +109,29 @@ class DataProfilingAgent:
                     "row_count": 10000,
                     "column_count": 15,
                     "html_report_path": "ge_reports/profile_report_20240101_120000.html",
-                    "json_report": {{"variables": {{}}, "table": {{}}, "correlations": {{}}, "missing": {{}}, "alerts": []}}
+                    "json_report_path": "ge_reports/profile_report_20240101_120000.json"
                 }}
                 ],
                 "next_steps": [
-                    "Investigate high null rate (35%) in payment_method column",
-                    "Review outliers in transaction_amount field",
-                    "Validate date ranges for anomalous patterns"
-                    ]
-                }}
+                "Investigate high null rate (35%) in payment_method column",
+                "Review outliers in transaction_amount field",
+                "Validate date ranges for anomalous patterns"
+                ]
+            }}
             }},
             
             "output_guidelines": [
                 "Always provide clear summaries of profiling results in the plan_goal.",
                 "Document each profiling operation performed in tasks_executed with complete details.",
-                "Read and include the complete JSON report content in the json_report field, not just the file path.",
+                "Provide the file path to the JSON report in json_report_path field.",
                 "Highlight critical data quality issues (e.g., >50% nulls, type mismatches) in next_steps.",
                 "Present column-level statistics in an organized manner within task descriptions.",
                 "Include exact HTML report file path in html_report_path.",
+                "Include exact JSON report file path in json_report_path.",
                 "Suggest specific, actionable next steps based on discovered issues.",
                 "Be specific about numbers and percentages when discussing data quality.",
-                "Ensure all required fields are populated in the output structure."
+                "Ensure all required fields are populated in the output structure.",
+                "Remember: Output must be ONLY valid JSON, nothing else."
             ],
             
             "constraints": [
@@ -141,11 +140,11 @@ class DataProfilingAgent:
                 "Ensure SQL queries are valid Snowflake syntax.",
                 "Do not make assumptions about data without profiling it first.",
                 "Use the provided schema to validate table and column references.",
-                "Always return results in the DataProfilingReport format.",
-                "Always load and include the full JSON report content, not just the file path."
+                "Always return results in the DataProfilingReport format as pure JSON.",
+                "Never add explanatory text before or after the JSON output."
             ]
         }}"""
-    
+
     def _get_schema(self):
         """Load table schema from metadata/schema.json"""
         schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'metadata', 'schema.json')
@@ -158,6 +157,7 @@ class DataProfilingAgent:
         except json.JSONDecodeError:
             print(f"Warning: Invalid JSON in schema file {schema_path}")
             return {}
+    
     def get_agent(self):
         """
         Get the configured AutoGen agent.

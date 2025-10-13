@@ -4,8 +4,8 @@ from pathlib import Path
 from agent.DataProfilingAgent import DataProfilingAgent
 
 from autogen_agentchat.ui import Console
-from agent.DataQualityAgent import DataQualityAgent
-from agent.DataQualityAgent import DataQualityAgentReport, DataQualityIssue
+from agent.SummarizerAgent import DataQualityAgent
+from agent.SummarizerAgent import DataQualityAgentReport, DataQualityIssue
 from agent.DataAgent import DataAgent
 from agent.ReportAgent import ReportAgent
 from agent.ReportAgent import ReportResponse
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         data_agent = DataAgent().get_agent()
         profiling_agent = DataProfilingAgent().get_agent()
         agents = [analytics_agent, data_agent, profiling_agent]
-        termination = MaxMessageTermination(10)
+        termination = MaxMessageTermination(6)
         team = RoundRobinGroupChat(agents, termination_condition=termination, custom_message_types=[StructuredMessage[DataQualityAgentReport], StructuredMessage[DataQualityIssue]])
         print("🔎 Running Analytics Agent test with DataAgent collaboration...")
         await team.reset()  # Reset the team for a new task.

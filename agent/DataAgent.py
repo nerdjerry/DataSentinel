@@ -9,7 +9,6 @@ import os
 
 class QueryExecution(BaseModel):
     """Result of a single query execution"""
-    task_purpose: str  # Why this query was run
     investigation_goal: str  # What was being investigated
     sql_query: str  # The actual SQL query executed
     row_count: int  # Number of rows returned
@@ -23,13 +22,13 @@ class DataAgentReport(BaseModel):
     next_steps: list[str]  # Recommended follow-up actions
 
 class DataAgent:
-    def __init__(self, name="DataAgent", description=None):
+    def __init__(self, name="DataAgent", system_message=None):
         """
         Initialize DataAgent.
         
         Args:
             name: Agent name
-            description: Custom system prompt
+            system_message: Custom system prompt
             output_structured_report: If True, outputs DataAgentReport instead of plain text
         """
         self.snowflakeToolFactory = SnowflakeQueryToolFactory()
@@ -45,13 +44,14 @@ class DataAgent:
             name=name,
             tools=self.tools,
             model_client=self.model,
-            description=description or self._default_description(),
+            description="Data Investigation Agent for identifying data quality issues",
+            system_message=system_message or self._system_message(),
             model_client_stream=True,
             reflect_on_tool_use=True,
             output_content_type=DataAgentReport
         )
     
-    def _default_description(self) -> str:
+    def _system_message(self) -> str:
         # Extract known data quality issues
         quality_notes = self.schema.get('data_quality_notes', [])
         quality_notes_text = "\n    ".join(quality_notes) if quality_notes else "None"

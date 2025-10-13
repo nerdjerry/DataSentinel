@@ -186,8 +186,8 @@ class SnowflakeQueryEngine:
     def execute_query(
         self, 
         query: str, 
-        goal: str = "",
-        return_format: str = "dataframe"
+        goal: str,
+        return_format: str
     ) -> Dict[str, Any]:
         """
         Execute a SQL query against the Snowflake database.
@@ -257,7 +257,7 @@ class SnowflakeQueryEngine:
                 "return_format": return_format
             }
     
-    def get_table_info(self, table_name: str, schema: str = None, database: str = None) -> Dict[str, Any]:
+    def get_table_info(self, table_name: str, schema: str, database: str) -> Dict[str, Any]:
         """
         Get information about a specific table including column details.
         
@@ -313,8 +313,8 @@ class SnowflakeQueryEngine:
                 "error": f"Failed to get table info: {str(e)}",
                 "table_name": table_name
             }
-    
-    def list_tables(self, schema: str = None, database: str = None) -> Dict[str, Any]:
+
+    def list_tables(self, schema: str, database: str) -> Dict[str, Any]:
         """
         List all tables in the specified schema/database.
         

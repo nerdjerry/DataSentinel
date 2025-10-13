@@ -4,7 +4,7 @@ from agent.model.ModelFactory import ModelFactory
 import json
 import os
 
-from agent.tool import ProfilingReportReaderToolFactory
+from agent.tool.ProfilingReportReaderToolFactory import ProfilingReportReaderToolFactory
 
 class DataQualityIssue(BaseModel):
     type: str  # e.g., "Missing Values", "Type Mismatch"
@@ -30,50 +30,50 @@ class SummarizerAgent:
             description="Summarizer Agent for Data Quality Issue Reporting",
             tools=self.tools,
             system_message=system_message or 
-            f"""{{
-            "role": "You are the SummarizerAgent. Your purpose is to summarize data quality by combining data samples from DataAgent and profiling statistics from ProfilingAgent to produce comprehensive issue reports.",
-            
-            "schema": {json.dumps(self.schema, indent=2)},
-            
-            "context": {{
-            "data_sources": {{
-                "DataAgent": "Retrieve table samples, raw data, and specific query results",
-                "ProfilingAgent": "Obtain statistical profiles, distributions, and metadata analysis"
-            }},
-            "analysis_workflow": [
-                "Request data sample from DataAgent",
-                "Request profiling statistics from ProfilingAgent",
-                "Use tools to read JSON profiling reports",
-                "Cross-reference data samples with statistical profiles",
-                "Identify discrepancies between expected and actual patterns",
-                "Generate comprehensive issue report"
+            f"""{json.dumps({
+            "role": "You are the SummarizerAgent. Combine outputs from DataAgent and ProfilingAgent to produce a unified data quality summary highlighting key issues, evidence, and recommendations.",
+
+            "schema": self.schema,
+
+            "capabilities": {
+                "data_sources": ["DataAgent", "ProfilingAgent"],
+                "actions": [
+                "Correlate data samples with profiling statistics",
+                "Identify discrepancies, anomalies, and type mismatches",
+                "Summarize key findings with evidence and remediation steps"
+                ]
+            },
+
+            "output_format": {
+                "summary": "One-paragraph overview of combined findings",
+                "issues": [
+                {
+                    "type": "Missing Values",
+                    "severity": "High",
+                    "evidence_query": "SELECT COUNT(*) FROM RIDEBOOKING WHERE BOOKING_VALUE IS NULL",
+                    "evidence_description": "15% of records have null BOOKING_VALUE"
+                }
+                ],
+                "recommendations": [
+                "Impute missing BOOKING_VALUE based on median values"
+                ],
+                "required_followup_queries": [
+                "SELECT BOOKING_VALUE, RIDE_DISTANCE FROM RIDEBOOKING WHERE BOOKING_VALUE IS NULL"
+                ],
+                "analysis_complete": True
+            },
+
+            "constraints": [
+                "Correlate DataAgent and ProfilingAgent findings consistently",
+                "Use profiling metrics to validate data observations",
+                "Never expose credentials, secrets, or PII",
+                "Output must match DataQualityAgentReport schema in valid JSON"
             ],
-            "issue_detection": [
-                "Compare null counts from profiling with actual data samples",
-                "Validate data type consistency between profile and samples",
-                "Check distribution anomalies against statistical baselines",
-                "Verify uniqueness constraints using profiling metrics",
-                "Detect outliers by comparing samples to statistical ranges",
-                "Identify format inconsistencies across both sources",
-                "Cross-validate referential integrity issues"
-            ],
-            "output_format": {{
-                "summary": "One-paragraph synthesis of findings from both data and profiling analysis.",
-                "issues": "List of objects {{type, severity (Critical/High/Medium/Low), evidence_query, evidence_description}} combining insights from both agents.",
-                "recommendations": "Prioritized remediation steps based on combined data and statistical evidence.",
-                "required_followup_queries": "List of SQL queries for deeper investigation based on findings.",
-                "analysis_complete": "Boolean flag indicating if both data and profiling analysis are complete."
-            }},
-            "collaboration_rules": [
-                "Always correlate DataAgent findings with ProfilingAgent statistics",
-                "Use profiling metrics to validate data sample observations",
-                "Leverage statistical baselines to identify anomalies in data samples"
-            ],
-            "security_privacy": "Never expose credentials, secrets, or PII in outputs."
-            }}
-            }}""",
-            reflect_on_tool_use=True,
-            model_client_stream=True,
+
+            "termination_condition": "Summarize findings once, produce a complete DataQualityAgentReport, and terminate execution."
+            })}""",
+            reflect_on_tool_use=False,  # Disabled to prevent JSON parsing issues with structured output
+            model_client_stream=False,  # Disable streaming for structured output
             output_content_type=DataQualityAgentReport
         )
 

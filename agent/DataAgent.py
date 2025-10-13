@@ -46,8 +46,8 @@ class DataAgent:
             model_client=self.model,
             description="Data Investigation Agent for identifying data quality issues",
             system_message=system_message or self._system_message(),
-            model_client_stream=True,
-            reflect_on_tool_use=True,
+            model_client_stream=False,  # Disable streaming for structured output
+            reflect_on_tool_use=False,  # Disabled to prevent JSON parsing issues with structured output
             output_content_type=DataAgentReport
         )
     
@@ -57,79 +57,53 @@ class DataAgent:
         quality_notes_text = "\n    ".join(quality_notes) if quality_notes else "None"
         
         base_description = f"""{{
-            "role": "You are a Data Investigation Agent with direct access to RIDEBOOKING data in Snowflake. You execute investigation goals from the PlannerAgent and identify data quality issues.",
-    
-            "schema": {json.dumps(self.schema, indent=2)},
-    
+            "role": "You are the Data Investigation Agent. Given a goal, generate and execute Snowflake SQL queries on RIDEBOOKING data to identify data quality issues.",
+            
+            "schema": {json.dumps(self.schema)},
+
             "capabilities": {{
-                "tools": {{
-                    "list_tables": "Discover available tables",
-                    "table_info": "Fetch schema details of a table",
-                    "snowflake_sql": "Execute SQL queries and return results"
-                }},
-                "investigation": [
-                    "Translate investigation goals into appropriate SQL queries",
-                    "Execute queries and analyze results",
-                    "Identify data quality issues (missing values, invalid data, outliers, inconsistencies)",
-                    "Provide evidence with counts, samples, and statistics",
-                    "Assess severity and impact of issues found"
+                "tools": ["list_tables", "table_info", "snowflake_sql"],
+                "actions": [
+                    "Translate goals into SQL queries",
+                    "Execute and analyze results",
+                    "Detect issues such as nulls, invalid data, or outliers",
+                    "Summarize findings with counts and samples"
                 ]
             }},
-    
-            "known_data_issues": [
+
+            "query_best_practices": [
+                "Use TRY_CAST for numeric columns",
+                "Check both NULL and 'null' strings",
+                "Use LIMIT for sampling",
+                "Include counts and percentages in results"
+            ],
+
+            "output_format": {{
+                "plan_goal": "Original goal from the plan",
+                "tasks_executed": [
+                {{
+                    "investigation_goal": "What was being investigated",
+                    "sql_query": "Executed SQL query",
+                    "row_count": 0,
+                    "sample_data": "First 10 rows as formatted string",
+                    "summary": "Brief summary of findings"
+                }}
+                ],
+                "next_steps": ["Recommended follow-up actions"]
+            }},
+
+            "known_data_quality_issues": [
                 {quality_notes_text}
             ],
-    
-            "query_best_practices": [
-                "Use TRY_CAST for BOOKING_VALUE and RIDE_DISTANCE to handle 'null' strings",
-                "Include both NULL checks and string 'null' checks for problematic columns",
-                "Use LIMIT for sampling unless full count is needed",
-                "Provide clear context with each query result",
-                "Calculate percentages when reporting issues (e.g., % missing values)"
-            ]}}"""
 
-        
-        base_description += """,
-    
-            "output_format": {
-                "plan_goal": "The original goal from the plan",
-                "tasks_executed": [
-                    {
-                        "task_purpose": "Why this query was run",
-                        "investigation_goal": "What was being investigated",
-                        "sql_query": "The actual SQL executed",
-                        "row_count": "Number of rows returned",
-                        "sample_data": "First 10 rows as formatted string",
-                        "summary": "Brief summary of findings"
-                    }
-                ],
-            "next_steps": ["Recommended follow-up actions"]
-            },
-    
-            "issue_detection_guidelines": {
-                "missing_values": {
-                    "threshold": "Flag if > 5% missing in critical columns",
-                    "severity": "Critical if > 20%, High if > 10%, Medium if > 5%",
-                    "check": "COUNT NULL values AND string 'null' values"
-                },
-                "invalid_data": {
-                    "examples": "Negative booking values, zero distances, future dates",
-                    "severity": "Critical for revenue/distance fields",
-                    "check": "Range validation, format validation"
-                },
-                "outliers": {
-                    "detection": "Values > 3 standard deviations from mean",
-                    "severity": "Medium unless affecting critical calculations",
-                    "check": "Statistical analysis with percentiles"
-                },
-                "inconsistencies": {
-                    "examples": "Completed rides with null values, cancelled rides with booking values",
-                    "severity": "Varies based on business logic",
-                    "check": "Cross-field validation"
-                }
-            }"""
-        
-        return base_description + "\n}"
+            "constraints": [
+                "Only query columns from schema",
+                "Never expose credentials or PII"
+            ],
+
+            "termination_condition": "Execute each investigation goal exactly once, generate a single DataAgentReport, and terminate after returning it."
+            }}"""
+        return base_description
 
     def _get_schema(self):
         """Load table schema from metadata/schema.json"""

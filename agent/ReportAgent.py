@@ -7,12 +7,12 @@ class ReportResponse(BaseModel):
     thoughts: str  # Optional field for the agent's thoughts
 
 class ReportAgent:
-    def __init__(self, name="ReportAgent", description=None):
+    def __init__(self, name="ReportAgent", system_message=None):
         self.model = ModelFactory.get_model()
         self.agent = AssistantAgent(
             name=name,
             model_client=self.model,
-            description=description or 
+            system_message=system_message or 
             """{
                 "role": "You are a Reporting Specialist. Your job is to generate a well-formatted, visually appealing HTML report based on data profiling results and analytics provided by other agents.",
                 
@@ -62,8 +62,8 @@ class ReportAgent:
                     "Clearly distinguish between data profiling results and analytical insights."
                 ]
                 }""",
-                reflect_on_tool_use=True,
-                model_client_stream=True,
+                reflect_on_tool_use=False,  # Disabled to prevent JSON parsing issues with structured output
+                model_client_stream=False,  # Disable streaming for structured output
                 output_content_type=ReportResponse
         )
 

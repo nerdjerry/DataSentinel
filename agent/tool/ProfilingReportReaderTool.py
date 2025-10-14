@@ -46,7 +46,7 @@ class ProfilingReportReaderTool:
         
         self.logger.info(f"ProfilingReportReaderTool initialized. Default reports directory: {self.reports_dir}")
     
-    def read_json_report(self, file_path: str, pretty_print: bool = True) -> Dict[str, Any]:
+    def read_json_report(self, file_path: str, pretty_print: bool) -> Dict[str, Any]:
         """
         Read a JSON profiling report and return it as a string.
         

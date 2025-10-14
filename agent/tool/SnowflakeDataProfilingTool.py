@@ -33,6 +33,12 @@ from pathlib import Path
 import json
 import pandas as pd
 from dotenv import load_dotenv
+
+# Configure matplotlib to use non-interactive backend BEFORE ydata-profiling import
+# This prevents "NSWindow should only be instantiated on the main thread" errors on macOS
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
+
 from ydata_profiling import ProfileReport
 
 try:

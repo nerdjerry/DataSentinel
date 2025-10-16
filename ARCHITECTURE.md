@@ -118,7 +118,6 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  │ ModelFactory                                                  │  │
 │  │ - Creates OpenAI client instances                             │  │
 │  │ - Model: gpt-5-mini (default)                                 │  │
-│  │ - Configurable temperature (when supported)                   │  │
 │  │ - API key management via environment variables                │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
@@ -709,18 +708,6 @@ for result in results:
 - [x] **Concurrent task processing**: Each query/profiling task runs in separate async coroutine
 - [x] **Exception handling per task**: Failures in individual tasks don't crash the entire workflow
 - [x] **Multi-task reporting**: Support for multiple DataAgentReports and DataProfilingReports in analysis phase
-
-### Planned Features
-- [ ] Real-time data quality monitoring
-- [ ] Automated remediation suggestions
-- [ ] Integration with data lineage tools
-- [ ] Support for additional databases (PostgreSQL, MySQL)
-- [ ] Custom expectation creation
-- [ ] Dashboard for historical trends
-- [ ] Slack/Teams notifications
-- [ ] API endpoint for programmatic access
-- [ ] Incremental profiling for large tables
-- [ ] Dynamic agent scaling based on workload
 
 ### Architecture Evolution
 - [ ] Plugin system for custom agents

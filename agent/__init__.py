@@ -15,7 +15,7 @@ from .DataAgent import DataAgent
 from .DataProfilingAgent import DataProfilingAgent
 from .SummarizerAgent import SummarizerAgent
 from .ReportAgent import ReportAgent
-from .Orchestrator import Orchestrator, run_data_quality_analysis
+from .Orchestrator import Orchestrator
 
 __all__ = [
     'PlannerAgent',
@@ -23,6 +23,5 @@ __all__ = [
     'DataProfilingAgent',
     'SummarizerAgent',
     'ReportAgent',
-    'Orchestrator',
-    'run_data_quality_analysis'
+    'Orchestrator'
 ]

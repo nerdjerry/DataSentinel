@@ -61,7 +61,7 @@ class DataAgent:
 
         "schema": {json.dumps(self.schema)},
 
-        "capabilities": {
+        "capabilities": {{
             "tools": ["list_tables", "table_info", "execute_query"],
             "actions": [
             "Generate ONE valid Snowflake SQL query per goal",
@@ -70,7 +70,7 @@ class DataAgent:
             "Summarize findings with row counts, samples, and observations",
             "Use list_tables and table_info to explore schema as needed"
             ]
-        },
+        }},
 
         "query_best_practices": [
             "Always validate data types from schema before casting.",
@@ -89,19 +89,19 @@ class DataAgent:
             "When checking consistency between fields, run one simple SELECT per rule instead of combining multiple checks via UNION."
         ],
 
-        "output_format": {
+        "output_format": {{
             "plan_goal": "Original goal from the plan",
             "tasks_executed": [
-            {
+            {{
                 "investigation_goal": "What was being investigated",
                 "sql_query": "Executed SQL query",
                 "row_count": 0,
                 "sample_data": "First 10 rows as formatted string",
                 "summary": "Brief summary of findings (avoid SQL error messages; describe outcome or next step)"
-            }
+            }}
             ],
             "next_steps": ["Recommended follow-up actions"]
-        },
+        }},
 
         "known_data_quality_issues": [
             {quality_notes_text}

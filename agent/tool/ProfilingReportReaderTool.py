@@ -16,6 +16,7 @@ import json
 import logging
 from typing import Dict, Any
 from pathlib import Path
+import os
 
 
 class ProfilingReportReaderTool:
@@ -38,7 +39,9 @@ class ProfilingReportReaderTool:
             reports_dir (str): Default directory path for reading reports
         """
         # Set up logging
-        logging.basicConfig(level=logging.INFO)
+        log_level = os.environ.get('LOG_LEVEL', 'ERROR').upper()
+        numeric_level = getattr(logging, log_level, logging.ERROR)
+        logging.basicConfig(level=numeric_level)
         self.logger = logging.getLogger(__name__)
         
         # Set default reports directory
@@ -71,7 +74,17 @@ class ProfilingReportReaderTool:
             
             # If path is relative, try to resolve it relative to reports_dir
             if not path.is_absolute():
-                path = self.reports_dir / path
+                # Check if the file_path already starts with the reports_dir
+                # to avoid duplication like ge_reports/ge_reports/...
+                file_path_str = str(path)
+                reports_dir_str = str(self.reports_dir)
+                
+                if file_path_str.startswith(reports_dir_str + '/') or file_path_str.startswith(reports_dir_str + '\\'):
+                    # Path already includes reports_dir, use as-is
+                    path = Path(file_path)
+                else:
+                    # Append to reports_dir
+                    path = self.reports_dir / path
             
             # Check if file exists
             if not path.exists():

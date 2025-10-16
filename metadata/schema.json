@@ -18,7 +18,7 @@
       "description": "Unique identifier for each ride booking"
     },
     {
-      "name": "BOOKING_STATUS",
+      "name": "Booking Status",
       "type": "VARCHAR",
       "description": "Status of booking (Completed, Cancelled by Customer, Cancelled by Driver, etc.)"
     },

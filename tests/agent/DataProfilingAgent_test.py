@@ -4,7 +4,11 @@ import os
 from pathlib import Path
 
 from autogen_agentchat.ui import Console
+from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_agentchat.messages import StructuredMessage
+from autogen_agentchat.conditions import MaxMessageTermination
 from agent.DataProfilingAgent import DataProfilingAgent
+from agent.DataProfilingAgent import DataProfilingReport
 
 
 async def test_profiling_agent():
@@ -18,7 +22,7 @@ async def test_profiling_agent():
     
     # Test task: Profile the RIDEBOOKING table
     task = """
-    Profile distributions and descriptive statistics for RIDE_DISTANCE, BOOKING_VALUE, and CUSTOMER_RATING: count, nulls, min, max, mean, median, stddev, 5/25/75/95 percentiles and histograms; apply TRY_CAST for numeric casts where needed.
+    Profile the BOOKING_VALUE column (after normalizing literal 'null' strings) to produce completeness (null rate), distinct count, min/max, mean, median, standard deviation, percentiles (p1/p5/p25/p50/p75/p95/p99), histogram and outlier detection; include breakdowns by VEHICLE_TYPE and PAYMENT_METHOD to identify distributional skew and segment-specific data-quality issues.
     """
     
     print(f"\nTask: {task}\n")
@@ -27,10 +31,43 @@ async def test_profiling_agent():
     # Run the agent
     await Console(profiling_agent.run_stream(task=task))
     
+async def test_team_execution():
+    """Test profiling with team execution using RoundRobinGroupChat."""
     print("\n" + "=" * 80)
-    print("Test completed!")
+    print("Testing Team Execution")
     print("=" * 80)
-
+    
+    # Create the profiling agent
+    profiling_agent = DataProfilingAgent(reports_dir="ge_reports").get_agent()
+    
+    # Define the profiling task
+    profiling_task_str = """
+    Profile the BOOKING_VALUE column (after normalizing literal 'null' strings) to produce completeness (null rate), distinct count, min/max, mean, median, standard deviation, percentiles (p1/p5/p25/p50/p75/p95/p99), histogram and outlier detection; include breakdowns by VEHICLE_TYPE and PAYMENT_METHOD to identify distributional skew and segment-specific data-quality issues.
+    """
+    
+    termination = MaxMessageTermination(max_messages=3)
+    team = RoundRobinGroupChat(
+        [profiling_agent],
+        termination_condition=termination,
+        custom_message_types=[StructuredMessage[DataProfilingReport]]
+    )
+    
+    # Run with console output
+    result = await Console(team.run_stream(task=profiling_task_str))
+    
+    # Extract and store result
+    all_profiling_results = []
+    for message in reversed(result.messages):
+        if hasattr(message, 'content') and isinstance(message.content, DataProfilingReport):
+            all_profiling_results.append(message.content)
+            break
+    
+    print("\n" + "=" * 80)
+    print("Team execution completed!")
+    print("=" * 80)
+    print(all_profiling_results)
+    
+    return all_profiling_results
 
 async def test_custom_query_profiling():
     """Test profiling with a custom aggregated query."""
@@ -77,10 +114,13 @@ async def main():
     """Run all agent tests."""
     try:
         # Test basic profiling
-        await test_profiling_agent()
+        # await test_profiling_agent()
         
         # Uncomment to test custom query profiling
         # await test_custom_query_profiling()
+
+        # Test team execution
+        await test_team_execution()
         
     except Exception as e:
         print(f"\n✗ Test failed with error: {str(e)}")

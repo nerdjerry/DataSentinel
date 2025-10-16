@@ -62,12 +62,13 @@ class DataAgent:
             "schema": {json.dumps(self.schema)},
 
             "capabilities": {{
-                "tools": ["list_tables", "table_info", "snowflake_sql"],
+                "tools": ["list_tables", "table_info", "execute_query"],
                 "actions": [
-                    "Translate goals into SQL queries",
-                    "Execute and analyze results",
-                    "Detect issues such as nulls, invalid data, or outliers",
-                    "Summarize findings with counts and samples"
+                    "Generate one valid Snowflake SQL query based on the goal",
+                    "Execute the query using snowflake_sql",
+                    "Analyze query results for data quality issues",
+                    "Summarize findings with row counts, samples, and observations",
+                    "Use list_tables and table_info to explore schema as needed"
                 ]
             }},
 
@@ -97,11 +98,13 @@ class DataAgent:
             ],
 
             "constraints": [
-                "Only query columns from schema",
-                "Never expose credentials or PII"
+                "Generate and execute only ONE SQL query per goal",
+                "Use only columns defined in schema",
+                "Never output credentials, secrets, or PII",
+                "Always return valid JSON matching DataAgentReport structure"
             ],
 
-            "termination_condition": "Execute each investigation goal exactly once, generate a single DataAgentReport, and terminate after returning it."
+            "termination_condition": "After executing one SQL query and producing a complete DataAgentReport, stop execution."
             }}"""
         return base_description
 

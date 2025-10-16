@@ -594,30 +594,3 @@ class Orchestrator:
             json.dump(json_results, f, indent=2, ensure_ascii=False)
         
         print(f"📁 Workflow results saved to: {results_path}")
-
-
-# Convenience function for running the orchestrator
-async def run_data_quality_analysis(
-    goal: str,
-    reports_dir: str = "ge_reports",
-    max_rounds: int = 20,
-    enable_console: bool = True
-) -> Dict[str, Any]:
-    """
-    Convenience function to run complete data quality analysis.
-    
-    Args:
-        goal: Data quality goal to analyze
-        reports_dir: Directory for storing reports
-        max_rounds: Maximum conversation rounds per phase
-        enable_console: Whether to show console output
-        
-    Returns:
-        Dictionary with complete workflow results
-    """
-    orchestrator = Orchestrator(
-        reports_dir=reports_dir,
-        max_rounds=max_rounds,
-        enable_console_output=enable_console
-    )
-    return await orchestrator.run_analysis(goal)

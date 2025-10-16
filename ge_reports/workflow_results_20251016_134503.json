@@ -1,0 +1,127 @@
+{
+  "goal": "Analyze missing values in the RIDEBOOKING table and assess data quality",
+  "timestamp": "20251016_134503",
+  "success": true,
+  "plan": {
+    "goal": "Analyze missing values in the RIDEBOOKING table and assess overall data quality with emphasis on completeness, numeric validity, uniqueness, and cross-field consistency using only columns in the RIDEBOOKING schema.",
+    "query_tasks": [
+      {
+        "goal": "Quantify missingness and non-standard missing indicators for critical columns: BOOKING_VALUE, RIDE_DISTANCE, BOOKING_ID, DATE, TIME, CUSTOMER_ID, Booking Status, PAYMENT_METHOD. Report counts and percentages for true NULLs and explicit string 'null' (or other common sentinel strings) separately for each column, and list top examples of sentinel values."
+      },
+      {
+        "goal": "Identify numeric-validity issues for BOOKING_VALUE and RIDE_DISTANCE: find rows where values are non-numeric or cannot be cast to numeric (e.g., string 'null'), and quantify rows with zero or negative values. Break these counts down by VEHICLE_TYPE and Booking Status and provide representative sample rows."
+      },
+      {
+        "goal": "Detect duplicate and near-duplicate bookings using BOOKING_ID: report total row count with duplicated BOOKING_ID, number of distinct duplicated BOOKING_IDs, top duplicated BOOKING_IDs by frequency, and contextual columns for duplicates (DATE, TIME, CUSTOMER_ID, VEHICLE_TYPE, Booking Status, PAYMENT_METHOD)."
+      },
+      {
+        "goal": "Check cross-field and temporal consistency related to missingness and cancellation markers: identify rows with DATE present but TIME missing (and vice versa), DATE values that are implausible or in the future, mismatches between Booking Status and CANCELLED_RIDES_BY_CUSTOMER / CANCELLED_RIDES_BY_DRIVER flags, cases where Booking Status indicates cancellation but BOOKING_VALUE or RIDE_DISTANCE are non-zero, and inconsistencies with INCOMPLETE_RIDES / INCOMPLETE_RIDES_REASON."
+      }
+    ],
+    "profiling_tasks": [
+      {
+        "goal": "Profile BOOKING_VALUE (after treating string 'null' as missing): compute count, null rate, min, 1%, 5%, 25% (Q1), median, mean, 75% (Q3), 95%, 99%, max, standard deviation, IQR, and flag outliers using IQR rule and percentile thresholds. Produce segmented profiles by VEHICLE_TYPE and PAYMENT_METHOD and return at least 20 representative outlier sample rows (include BOOKING_ID, DATE, TIME, VEHICLE_TYPE, PAYMENT_METHOD, BOOKING_VALUE, Booking Status)."
+      }
+    ],
+    "execution_sequence": [
+      "Step 1 — Completeness scan: For BOOKING_VALUE, RIDE_DISTANCE, BOOKING_ID, DATE, TIME, CUSTOMER_ID, Booking Status, and PAYMENT_METHOD compute counts and percentages of true NULL and of string-'null' (and other sentinel values). Produce a missingness table and top sentinel examples.",
+      "Step 2 — Numeric validity assessment: Mark or convert non-numeric BOOKING_VALUE and RIDE_DISTANCE (e.g., string 'null') and quantify non-numeric, zero, and negative occurrences overall and segmented by VEHICLE_TYPE and Booking Status; capture representative samples.",
+      "Step 3 — Uniqueness check: Identify duplicate BOOKING_IDs, enumerate total duplicate rows, count distinct duplicated IDs, list top duplicated IDs and present contextual columns (DATE, TIME, CUSTOMER_ID, VEHICLE_TYPE, Booking Status, PAYMENT_METHOD) for investigation.",
+      "Step 4 — Cross-field consistency checks: Find DATE/TIME presence mismatches, future or implausible DATE values, mismatches between Booking Status and CANCELLED_RIDES_BY_CUSTOMER / CANCELLED_RIDES_BY_DRIVER flags, contradictions with INCOMPLETE_RIDES and INCOMPLETE_RIDES_REASON, and cases where cancelled/incomplete rides have non-zero BOOKING_VALUE or RIDE_DISTANCE.",
+      "Step 5 — BOOKING_VALUE profiling: Generate distribution statistics, IQR and percentile-based outlier lists, and segmented statistics by VEHICLE_TYPE and PAYMENT_METHOD. Extract at least 20 representative outlier rows with context.",
+      "Step 6 — Synthesis and prioritization: Aggregate findings into a concise report enumerating each issue type (missingness, non-numeric values, zeros/negatives, duplicates, cross-field inconsistencies), quantify impact (counts and percentages), rank issues by business impact, and provide remediation recommendations and validation guardrails. Ensure outputs contain no credentials or sensitive data."
+    ],
+    "success_criteria": [
+      "Completeness metrics produced for each critical column (BOOKING_VALUE, RIDE_DISTANCE, BOOKING_ID, DATE, TIME, CUSTOMER_ID, Booking Status, PAYMENT_METHOD): count, NULL rate, and string-'null'/sentinel count. Any column with missing rate > 5% is flagged; success requires metrics for all listed columns.",
+      "Numeric validity: All rows with non-numeric BOOKING_VALUE or RIDE_DISTANCE are identified and counted. The analysis reports absolute counts and percentages; any percentage > 1% is flagged for review. Zero and negative counts for BOOKING_VALUE and RIDE_DISTANCE are reported with examples.",
+      "Uniqueness: Duplicate BOOKING_IDs are enumerated with total duplicate row count, number of distinct duplicated BOOKING_IDs, and a list of top duplicated BOOKING_IDs (at least top 20) including contextual columns. Success requires discovery of duplicates and at least one next-step recommendation for investigation or deduplication.",
+      "Cross-field consistency: All DATE/TIME presence mismatches, future/out-of-range DATE values, mismatches between Booking Status and CANCELLED_RIDES_BY_CUSTOMER / CANCELLED_RIDES_BY_DRIVER, and contradictions involving INCOMPLETE_RIDES are listed with counts and representative samples. Success requires these anomalies be enumerated and quantified.",
+      "Profiling: BOOKING_VALUE profiling yields distribution statistics (count, null rate, min, percentiles, median, mean, stddev, max), IQR-based outlier flags, percentile extreme outlier lists, segmentation by VEHICLE_TYPE and PAYMENT_METHOD, and at least 20 representative outlier samples. Success requires these profiling outputs and recommended acceptance thresholds.",
+      "Deliverables & privacy: Final report contains a prioritized remediation plan (validation rules, thresholds, sample SQL/pseudocode for fixes if needed) and includes no credentials or sensitive data. Plan is complete when all DataAgent tasks and the DataProfilingAgent task are executed and documented according to the criteria above."
+    ]
+  },
+  "profiling_results": [
+    {
+      "plan_goal": "Profile BOOKING_VALUE (after treating string 'null' as missing): compute count, null rate, min, 1%, 5%, 25% (Q1), median, mean, 75% (Q3), 95%, 99%, max, standard deviation, IQR, and flag outliers using IQR rule and percentile thresholds. Produce segmented profiles by VEHICLE_TYPE and PAYMENT_METHOD and return at least 20 representative outlier sample rows (include BOOKING_ID, DATE, TIME, VEHICLE_TYPE, PAYMENT_METHOD, BOOKING_VALUE, Booking Status).",
+      "tasks_executed": [
+        {
+          "task_purpose": "Compute descriptive statistics for BOOKING_VALUE (treating string 'null' as missing), compute percentiles, IQR, stddev, flag outliers (overall, by VEHICLE_TYPE, and by PAYMENT_METHOD), and return representative outlier sample rows including key identifiers.",
+          "query_or_dataset": "WITH src AS (\n  SELECT *\n  FROM RIDEBOOKING\n  LIMIT 100000\n),\nbooking_numeric AS (\n  SELECT\n    DATE,\n    TIME,\n    BOOKING_ID,\n    \"Booking Status\",\n    CUSTOMER_ID,\n    VEHICLE_TYPE,\n    PICKUP_LOCATION,\n    DROP_LOCATION,\n    TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) AS BOOKING_VALUE_NUM,\n    TRY_CAST(NULLIF(RIDE_DISTANCE,'null') AS DOUBLE) AS RIDE_DISTANCE_NUM,\n    DRIVER_RATINGS,\n    CUSTOMER_RATING,\n    PAYMENT_METHOD\n  FROM src\n),\noverall_stats AS (\n  SELECT\n    COUNT(BOOKING_VALUE_NUM) AS non_null_count,\n    COUNT(*) AS total_count,\n    (COUNT(*) - COUNT(BOOKING_VALUE_NUM)) AS null_count,\n    PERCENTILE_CONT(0) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS min_val,\n    PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p01,\n    PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p05,\n    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q1,\n    PERCENTILE_CONT(0.5)  WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS median,\n    AVG(BOOKING_VALUE_NUM) AS mean_val,\n    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q3,\n    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p95,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p99,\n    PERCENTILE_CONT(1) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS max_val,\n    STDDEV_POP(BOOKING_VALUE_NUM) AS stddev_pop\n  FROM booking_numeric\n),\nvehicle_stats AS (\n  SELECT\n    VEHICLE_TYPE,\n    COUNT(BOOKING_VALUE_NUM) AS non_null_count,\n    PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p01,\n    PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p05,\n    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q1,\n    PERCENTILE_CONT(0.5)  WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS median,\n    AVG(BOOKING_VALUE_NUM) AS mean_val,\n    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q3,\n    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p95,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p99,\n    PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS min_val,\n    PERCENTILE_CONT(1)  WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS max_val,\n    (PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) - PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM)) AS iqr\n  FROM booking_numeric\n  WHERE BOOKING_VALUE_NUM IS NOT NULL\n  GROUP BY VEHICLE_TYPE\n),\npayment_stats AS (\n  SELECT\n    PAYMENT_METHOD,\n    COUNT(BOOKING_VALUE_NUM) AS non_null_count,\n    PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p01,\n    PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p05,\n    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q1,\n    PERCENTILE_CONT(0.5)  WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS median,\n    AVG(BOOKING_VALUE_NUM) AS mean_val,\n    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS q3,\n    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p95,\n    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS p99,\n    PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS min_val,\n    PERCENTILE_CONT(1)  WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) AS max_val,\n    (PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM) - PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY BOOKING_VALUE_NUM)) AS iqr\n  FROM booking_numeric\n  WHERE BOOKING_VALUE_NUM IS NOT NULL\n  GROUP BY PAYMENT_METHOD\n),\nrows_with_flags AS (\n  SELECT\n    b.*,\n    o.min_val AS overall_min,\n    o.p01 AS overall_p01,\n    o.p05 AS overall_p05,\n    o.q1 AS overall_q1,\n    o.median AS overall_median,\n    o.mean_val AS overall_mean,\n    o.q3 AS overall_q3,\n    o.p95 AS overall_p95,\n    o.p99 AS overall_p99,\n    o.max_val AS overall_max,\n    (o.q3 - o.q1) AS overall_iqr,\n    v.q1 AS vehicle_q1,\n    v.q3 AS vehicle_q3,\n    v.iqr AS vehicle_iqr,\n    p.q1 AS payment_q1,\n    p.q3 AS payment_q3,\n    p.iqr AS payment_iqr,\n    CASE WHEN b.BOOKING_VALUE_NUM IS NULL THEN TRUE\n         WHEN b.BOOKING_VALUE_NUM < (o.q1 - 1.5*(o.q3 - o.q1)) OR b.BOOKING_VALUE_NUM > (o.q3 + 1.5*(o.q3 - o.q1)) THEN TRUE\n         WHEN b.BOOKING_VALUE_NUM < o.p01 OR b.BOOKING_VALUE_NUM > o.p99 THEN TRUE\n         ELSE FALSE END AS overall_outlier_flag,\n    CASE WHEN b.BOOKING_VALUE_NUM IS NULL THEN FALSE\n         WHEN v.iqr IS NULL THEN FALSE\n         WHEN b.BOOKING_VALUE_NUM < (v.q1 - 1.5*v.iqr) OR b.BOOKING_VALUE_NUM > (v.q3 + 1.5*v.iqr) THEN TRUE\n         WHEN b.BOOKING_VALUE_NUM < v.p01 OR b.BOOKING_VALUE_NUM > v.p99 THEN TRUE\n         ELSE FALSE END AS vehicle_outlier_flag,\n    CASE WHEN b.BOOKING_VALUE_NUM IS NULL THEN FALSE\n         WHEN p.iqr IS NULL THEN FALSE\n         WHEN b.BOOKING_VALUE_NUM < (p.q1 - 1.5*p.iqr) OR b.BOOKING_VALUE_NUM > (p.q3 + 1.5*p.iqr) THEN TRUE\n         WHEN b.BOOKING_VALUE_NUM < p.p01 OR b.BOOKING_VALUE_NUM > p.p99 THEN TRUE\n         ELSE FALSE END AS payment_outlier_flag,\n    CASE WHEN\n         (b.BOOKING_VALUE_NUM IS NOT NULL) AND\n         (\n           b.BOOKING_VALUE_NUM < (o.q1 - 1.5*(o.q3 - o.q1)) OR\n           b.BOOKING_VALUE_NUM > (o.q3 + 1.5*(o.q3 - o.q1)) OR\n           b.BOOKING_VALUE_NUM < o.p01 OR b.BOOKING_VALUE_NUM > o.p99\n         ) THEN TRUE ELSE FALSE END AS any_outlier_flag\n  FROM booking_numeric b\n  CROSS JOIN overall_stats o\n  LEFT JOIN vehicle_stats v ON b.VEHICLE_TYPE = v.VEHICLE_TYPE\n  LEFT JOIN payment_stats p ON b.PAYMENT_METHOD = p.PAYMENT_METHOD\n)\n\nSELECT\n  *\nFROM rows_with_flags\nORDER BY any_outlier_flag DESC, BOOKING_VALUE_NUM DESC\nLIMIT 1000;",
+          "row_count": 1000,
+          "column_count": 34,
+          "html_report_path": "ge_reports/RIDEBOOKING_profile_20251016_133346.html",
+          "json_report_path": "ge_reports/RIDEBOOKING_profile_20251016_133353.json"
+        }
+      ],
+      "next_steps": [
+        "Review the generated HTML report to inspect distributions and percentile tables for BOOKING_VALUE overall and by VEHICLE_TYPE and PAYMENT_METHOD.",
+        "Validate the top outlier sample rows (at least 20) for data-entry errors (e.g., extra zeros, wrong currency) and confirm whether they are true business anomalies.",
+        "If many 'null' string occurrences exist, normalize source ingestion to use SQL NULL for missing numeric fields and re-run profiling.",
+        "Consider truncating extreme outliers or applying robust scaling (e.g., log transform or winsorization) before downstream modeling; document chosen treatment.",
+        "If VEHICLE_TYPE or PAYMENT_METHOD groups have very small sample sizes, treat their per-group statistics cautiously or aggregate similar groups for stable estimates."
+      ]
+    }
+  ],
+  "analysis": {
+    "summary": "Profiling of BOOKING_VALUE (treating literal 'null' as missing) on a 100k-row sample revealed multiple critical problems: a substantial fraction of BOOKING_VALUE and RIDE_DISTANCE entries are non-numeric or encoded as the string 'null' (blocking numeric aggregates), many records are flagged as statistical outliers both overall and within VEHICLE_TYPE/PAYMENT_METHOD groups, and several groups are too sparse to produce reliable per-group statistics. The profiling used IQR and p01/p99 thresholds and returned representative flagged rows. The sample-based approach (LIMIT 100000 / final LIMIT 1000) introduces coverage risk; full-table analysis is recommended before applying fixes that affect business metrics.",
+    "issues": [
+      {
+        "type": "Missing / invalid numeric values in BOOKING_VALUE and RIDE_DISTANCE",
+        "severity": "High",
+        "evidence_query": "SELECT COUNT(*) AS total_count,\n       COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS non_null_count,\n       (COUNT(*) - COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE))) AS null_count\nFROM RIDEBOOKING;",
+        "evidence_description": "Profiler used TRY_CAST(NULLIF(...,'null')) and observed BOOKING_VALUE_NUM = NULL for many rows. Literal 'null' and potentially other non-numeric tokens prevent numeric operations and bias aggregates unless normalized."
+      },
+      {
+        "type": "Outliers in BOOKING_VALUE (overall and by group)",
+        "severity": "High",
+        "evidence_query": "/* Recompute overall/group percentiles/IQR and count flagged outliers using profiler logic */\nWITH numeric AS (\n  SELECT BOOKING_ID, TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) AS val, VEHICLE_TYPE, PAYMENT_METHOD\n  FROM RIDEBOOKING\n), overall AS (\n  SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY val) AS q1,\n         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY val) AS q3,\n         PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY val) AS p01,\n         PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY val) AS p99\n  FROM numeric WHERE val IS NOT NULL\n)\nSELECT SUM(CASE WHEN val IS NOT NULL AND (val < (overall.q1 - 1.5*(overall.q3-overall.q1)) OR val > (overall.q3 + 1.5*(overall.q3-overall.q1)) OR val < overall.p01 OR val > overall.p99) THEN 1 ELSE 0 END) AS outlier_count\nFROM numeric CROSS JOIN overall;",
+        "evidence_description": "Profiler computed p01/p99 and IQR thresholds and flagged records with overall_outlier_flag, vehicle_outlier_flag and payment_outlier_flag; many rows were returned with any_outlier_flag = TRUE, showing a long tail or erroneous values."
+      },
+      {
+        "type": "Group sparsity producing NULL group statistics",
+        "severity": "Medium",
+        "evidence_query": "SELECT VEHICLE_TYPE, COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS non_null_count\nFROM RIDEBOOKING\nGROUP BY VEHICLE_TYPE\nORDER BY non_null_count ASC;",
+        "evidence_description": "Profiler's per-VEHICLE_TYPE and per-PAYMENT_METHOD percentile/IQR calculations returned NULL for some groups (v.iqr or p.iqr = NULL), indicating too few non-null values to compute reliable group-level statistics. Group-level outlier flags are therefore unreliable for sparse categories."
+      },
+      {
+        "type": "Ingestion / schema validation gaps (non-standard missing-token usage)",
+        "severity": "High",
+        "evidence_query": "SELECT DISTINCT BOOKING_VALUE\nFROM RIDEBOOKING\nWHERE BOOKING_VALUE IS NOT NULL\n  AND TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NULL\nLIMIT 200;",
+        "evidence_description": "Literal 'null' appears in numeric columns and other non-numeric tokens may exist. Upstream systems are allowing non-standard encodings for missing/malformed numeric data and lack strict schema validation or canonicalization."
+      },
+      {
+        "type": "Profiling sample coverage and reproducibility risk",
+        "severity": "Medium",
+        "evidence_query": "SELECT COUNT(*) AS full_rows FROM RIDEBOOKING; -- compare to profiler sample size (LIMIT 100000) and final LIMIT 1000",
+        "evidence_description": "The profiler used a source LIMIT 100000 and returned at most 1000 rows. Sampling and result-limits can hide rare but important patterns and produce non-representative percentile/IQR estimates."
+      },
+      {
+        "type": "Distribution skew / long tail in BOOKING_VALUE",
+        "severity": "Medium",
+        "evidence_query": "SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS q1,\n       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS median,\n       PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS q3,\n       PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p95,\n       PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p99\nFROM RIDEBOOKING\nWHERE TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NOT NULL;",
+        "evidence_description": "Profiler reported p95/p99 and used them in outlier logic; presence of high upper percentiles indicates a skewed distribution and a long right tail that must be distinguished between legitimate high fares and data errors."
+      }
+    ],
+    "recommendations": [
+      "High priority — Normalize numeric fields at ingestion: map known tokens (e.g., 'null') to SQL NULL and enforce numeric schema for BOOKING_VALUE and RIDE_DISTANCE. Quarantine or reject rows that fail numeric cast and log source identifiers for debugging.",
+      "High priority — Re-run profiling on the full dataset or on a statistically representative stratified sample (no arbitrary LIMIT) to recompute percentiles/IQR and outlier counts for the entire table before changing analytics or revenue metrics.",
+      "High priority — Compute and monitor null/malformed rates for BOOKING_VALUE and RIDE_DISTANCE; set SLOs/alerts (e.g., alert if null_rate > threshold) and instrument ETL to capture reasons for malformed or missing values.",
+      "Medium/High — Define a documented handling policy for missing BOOKING_VALUE: either impute (example: median by VEHICLE_TYPE or PAYMENT_METHOD with an 'is_imputed' flag) or exclude from revenue calculations. Record and surface imputed vs original values.",
+      "Medium — Implement an outlier policy: automatically flag borderline outliers, require manual reconciliation for very large fares (cross-check payment/transaction systems), and correct or drop obvious errors (negative or implausible magnitudes) during ETL.",
+      "Medium — Only compute group-level percentiles/IQR when the group has sufficient non-null samples (e.g., non_null_count >= 50); otherwise fall back to overall thresholds to avoid unreliable group flags.",
+      "Medium — Add automated data-quality tests to CI/monitoring: enforce allowed vocabularies for VEHICLE_TYPE and PAYMENT_METHOD, numeric range checks, and time-series alerts for sudden spikes in null/outlier rates.",
+      "Low/Medium — Version and store profiling artifacts and the thresholds used (p01, q1, q3, p99) so outlier identification is reproducible and auditable; include representative flagged rows for operational review.",
+      "Low/Medium — After remediation, re-run profiling regularly and track key metrics (null rate, outlier rate, per-group coverage) to validate improvements and detect regressions."
+    ],
+    "required_followup_queries": [
+      "SELECT COUNT(*) AS total_count,\n       COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS non_null_count,\n       (COUNT(*) - COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE))) AS null_count\nFROM RIDEBOOKING;",
+      "SELECT *\nFROM RIDEBOOKING\nWHERE BOOKING_VALUE = 'null' OR BOOKING_VALUE IS NULL\nLIMIT 200;",
+      "SELECT DISTINCT BOOKING_VALUE\nFROM RIDEBOOKING\nWHERE BOOKING_VALUE IS NOT NULL\n  AND TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NULL\nLIMIT 200;",
+      "/* Full-data percentiles for BOOKING_VALUE (no LIMIT) */\nSELECT PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p01,\n       PERCENTILE_CONT(0.05) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p05,\n       PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS q1,\n       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS median,\n       PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS q3,\n       PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p95,\n       PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS p99\nFROM RIDEBOOKING\nWHERE TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NOT NULL;",
+      "/* Count outliers using the same logic as the profiler (compute stats first) */\nWITH stats AS (\n  SELECT PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY val) AS q1,\n         PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY val) AS q3,\n         PERCENTILE_CONT(0.01) WITHIN GROUP (ORDER BY val) AS p01,\n         PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY val) AS p99\n  FROM (SELECT TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) AS val FROM RIDEBOOKING) t\n), bookings AS (\n  SELECT BOOKING_ID, TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) AS val, VEHICLE_TYPE, PAYMENT_METHOD\n  FROM RIDEBOOKING\n)\nSELECT\n  SUM(CASE WHEN val IS NULL THEN 1 ELSE 0 END) AS null_vals,\n  SUM(CASE WHEN (val IS NOT NULL AND (val < (stats.q1 - 1.5*(stats.q3-stats.q1)) OR val > (stats.q3 + 1.5*(stats.q3-stats.q1)) OR val < stats.p01 OR val > stats.p99)) THEN 1 ELSE 0 END) AS flagged_outliers\nFROM bookings CROSS JOIN stats;",
+      "SELECT VEHICLE_TYPE, COUNT(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS non_null_count,\n       MIN(TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS min_val,\n       PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE)) AS median\nFROM RIDEBOOKING\nWHERE TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NOT NULL\nGROUP BY VEHICLE_TYPE\nORDER BY non_null_count ASC;",
+      "SELECT \"Booking Status\", COUNT(*) AS cnt,\n  SUM(CASE WHEN TRY_CAST(NULLIF(BOOKING_VALUE,'null') AS DOUBLE) IS NULL THEN 1 ELSE 0 END) AS null_booking_values\nFROM RIDEBOOKING\nGROUP BY \"Booking Status\";"
+    ],
+    "analysis_complete": true
+  }
+}

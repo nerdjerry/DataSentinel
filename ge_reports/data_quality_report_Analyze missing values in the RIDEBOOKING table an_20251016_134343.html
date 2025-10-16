@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RIDEBOOKING Data Quality Report</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; line-height:1.5; margin:20px; }
+    header { border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 18px; }
+    h1 { margin: 0 0 6px 0; font-size: 24px; }
+    .meta { color: #555; margin: 0; }
+    nav.tabs { margin: 18px 0; display:flex; gap:8px; }
+    nav.tabs a { text-decoration: none; padding:8px 12px; border-radius:6px; background:#f5f7fb; color:#0b3b66; border:1px solid #d7e0ee; }
+    nav.tabs a.active { background:#0b66a3; color:#fff; border-color:#084c77; }
+    main { display:block; }
+    section { margin-bottom: 20px; }
+    section h2 { font-size:18px; margin-bottom:8px; }
+    .card { background: #fff; border:1px solid #eee; padding:12px; border-radius:6px; }
+    table { border-collapse: collapse; width:100%; margin-top:8px; }
+    th, td { text-align:left; padding:8px; border-bottom:1px solid #eee; }
+    th { background:#f7fbff; font-weight:600; }
+    ul { margin:8px 0 8px 18px; }
+    .kpi-grid { display:flex; gap:12px; flex-wrap:wrap; }
+    .kpi { background:#f9fbff; border:1px solid #e6f0ff; padding:10px; border-radius:6px; min-width:160px; }
+    .btn { display:inline-block; padding:10px 14px; background:#0b66a3; color:#fff; border-radius:6px; text-decoration:none; border:1px solid #084c77; }
+    .note { font-size:13px; color:#444; }
+    footer { border-top:1px solid #eee; padding-top:10px; margin-top:20px; color:#666; font-size:13px; }
+    a:focus, .btn:focus { outline:3px solid #cfe9ff; outline-offset:2px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RIDEBOOKING — Data Quality & Profiling Report</h1>
+    <p class="meta">Date: 2025-10-16 | Source table: RIDEBOOKING</p>
+  </header>
+
+  <nav class="tabs" role="navigation" aria-label="Report tabs">
+    <a href="#overview" class="active" aria-current="page">Overview Report</a>
+    <a href="./RIDEBOOKING_profile_20251016_133346.html">Detailed Profiling</a>
+  </nav>
+
+  <main>
+    <section id="executive-summary">
+      <h2>Executive Summary</h2>
+      <div class="card">
+        <p><strong>Goal:</strong> Analyze missing values in the RIDEBOOKING table and assess data quality.</p>
+
+        <p>The profiler examined BOOKING_VALUE (treating literal 'null' as missing) on a 100,000-row sample and identified multiple critical issues that impede reliable numeric aggregation and outlier detection. Key problems include widespread non-numeric/"null" encodings in numeric columns (BOOKING_VALUE and RIDE_DISTANCE), many records flagged as outliers overall and at the group level (VEHICLE_TYPE and PAYMENT_METHOD), and group-level sparsity producing NULL statistics for some categories. The analysis used IQR and p01/p99 thresholds and returned representative flagged rows. Because the profiler used a sample (LIMIT 100000, returned ≤1000 rows), there is coverage risk; a full-table or representative stratified run is recommended before applying business-impacting fixes.</p>
+      </div>
+    </section>
+
+    <section id="data-profile-overview">
+      <h2>Data Profile Overview</h2>
+      <div class="card">
+        <p class="note">Profiling artifacts generated: 1 profile across 1 tasks.</p>
+
+        <table aria-label="Dataset summary">
+          <tr><th>Attribute</th><th>Value / Notes</th></tr>
+          <tr><td>Source sample size</td><td>100,000 rows (sampled)</td></tr>
+          <tr><td>Max returned representative rows</td><td>Up to 1,000 rows (profiling result limit)</td></tr>
+          <tr><td>Profile artifacts</td><td>HTML: RIDEBOOKING_profile_20251016_133346.html<br>JSON: RIDEBOOKING_profile_20251016_133353.json</td></tr>
+          <tr><td>Primary columns analyzed</td><td>BOOKING_VALUE (treated 'null' as missing), RIDE_DISTANCE, VEHICLE_TYPE, PAYMENT_METHOD, key identifiers (returned in representative rows)</td></tr>
+          <tr><td>Numeric normalization</td><td>TRY_CAST(NULLIF(...,'null')) was used; literal 'null' observed and treated as NULL</td></tr>
+          <tr><td>Outlier methods</td><td>p01/p99 percentile thresholds and IQR-based thresholds; flags computed overall and per VEHICLE_TYPE and PAYMENT_METHOD</td></tr>
+        </table>
+
+        <h3 style="margin-top:12px;">Schema & Data Notes</h3>
+        <ul>
+          <li>BOOKING_VALUE and RIDE_DISTANCE are expected numeric fields but contain literal 'null' and other non-numeric tokens that produced NULL when casting.</li>
+          <li>VEHICLE_TYPE and PAYMENT_METHOD were used for group-level statistics; some groups were too sparse to compute percentiles/IQRs.</li>
+          <li>No visualization files were provided with this overview; refer to the detailed HTML profiling artifact for representative rows and any embedded plots.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="data-quality-assessment">
+      <h2>Data Quality Assessment</h2>
+      <div class="card">
+        <h3>Missing & Invalid Values</h3>
+        <ul>
+          <li><strong>[High]</strong> Significant presence of literal 'null' and other non-numeric tokens in BOOKING_VALUE and RIDE_DISTANCE. TRY_CAST(NULLIF(...,'null')) resulted in many NULL numeric values, preventing numeric aggregation unless normalized.</li>
+        </ul>
+
+        <h3>Outliers</h3>
+        <ul>
+          <li><strong>[High]</strong> Many rows flagged as outliers overall and within VEHICLE_TYPE and PAYMENT_METHOD groups (flags: overall_outlier_flag, vehicle_outlier_flag, payment_outlier_flag). An any_outlier_flag = TRUE was observed for a substantial number of rows, indicating a long tail or erroneous values.</li>
+          <li>Outlier detection used p01/p99 and IQR thresholds; representative flagged rows were returned by the profiler (see detailed profiling HTML).</li>
+        </ul>
+
+        <h3>Group Sparsity</h3>
+        <ul>
+          <li><strong>[Medium]</strong> Some VEHICLE_TYPE and PAYMENT_METHOD groups have too few non-null numeric values — group percentile/IQR fields (e.g., v.iqr or p.iqr) were NULL — making group-level outlier flags unreliable for these categories.</li>
+        </ul>
+
+        <h3>Ingestion & Schema Validation</h3>
+        <ul>
+          <li><strong>[High]</strong> Upstream systems permit non-standard missing-token usage (literal 'null') in numeric columns. This indicates schema validation and canonicalization gaps during ingest.</li>
+        </ul>
+
+        <h3>Sampling & Coverage Risk</h3>
+        <ul>
+          <li><strong>[Medium]</strong> Analysis used LIMIT 100000 and returned at most 1000 rows. Sampling and result limits can obscure rare but important patterns and bias percentile/IQR estimates.</li>
+        </ul>
+
+        <h3>Distribution Shape</h3>
+        <ul>
+          <li><strong>[Medium]</strong> BOOKING_VALUE shows a skewed, long right tail (high p95/p99), which could be legitimate (high fares) or data errors; further reconciliation with transaction/payment systems is recommended for extreme values.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="kpis-and-trends">
+      <h2>Key KPIs and Trends</h2>
+      <div class="card">
+        <div class="kpi-grid" role="list">
+          <div class="kpi" role="listitem"><strong>Sample rows analyzed</strong><div>100,000 (LIMIT applied)</div></div>
+          <div class="kpi" role="listitem"><strong>Representative rows returned</strong><div>≤ 1,000 (profiling limit)</div></div>
+          <div class="kpi" role="listitem"><strong>Profiles generated</strong><div>1 profile across 1 task</div></div>
+          <div class="kpi" role="listitem"><strong>Critical issue count</strong><div>Multiple high-priority issues: non-numeric tokens in numeric fields, outliers, ingestion gaps</div></div>
+        </div>
+
+        <h3 style="margin-top:12px;">Trends & Notes</h3>
+        <ul>
+          <li>High prevalence of non-numeric tokens in BOOKING_VALUE and RIDE_DISTANCE — blocks numeric aggregation and biases metrics.</li>
+          <li>Outlier flags are frequent and must be triaged to distinguish genuine high fares from errors.</li>
+          <li>Group-level metrics are unreliable for sparse VEHICLE_TYPE / PAYMENT_METHOD categories; fallback to overall thresholds recommended for small groups.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="visualizations">
+      <h2>Visualizations</h2>
+      <div class="card">
+        <p>No plot image files were provided as part of this request. Placeholders are shown below; for detailed charts and representative flagged-row tables, open the profiling artifact (link below).</p>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <div style="width:320px; height:200px; border:1px dashed #ddd; border-radius:6px; display:flex;align-items:center;justify-content:center; color:#666;">Histogram placeholder: BOOKING_VALUE (see profiling HTML)</div>
+          <div style="width:320px; height:200px; border:1px dashed #ddd; border-radius:6px; display:flex;align-items:center;justify-content:center; color:#666;">Boxplot placeholder: BOOKING_VALUE by VEHICLE_TYPE</div>
+        </div>
+
+        <p class="note" style="margin-top:10px;">To view representative flagged rows, outlier samples, and any embedded charts, open the detailed profiling report: <a href="./RIDEBOOKING_profile_20251016_133346.html">RIDEBOOKING_profile_20251016_133346.html</a></p>
+      </div>
+    </section>
+
+    <section id="recommendations">
+      <h2>Recommendations</h2>
+      <div class="card">
+        <ol>
+          <li><strong>High priority</strong> — Normalize numeric fields at ingestion: map known tokens (e.g., 'null') to SQL NULL and enforce numeric schema for BOOKING_VALUE and RIDE_DISTANCE. Quarantine or reject rows that fail numeric cast and log source identifiers for debugging.</li>
+
+          <li><strong>High priority</strong> — Re-run profiling on the full dataset or a statistically representative stratified sample (avoid arbitrary LIMIT) to recompute percentiles/IQR and outlier counts prior to changing analytics or revenue metrics.</li>
+
+          <li><strong>High priority</strong> — Compute and monitor null/malformed rates for BOOKING_VALUE and RIDE_DISTANCE; set SLOs/alerts (e.g., alert if null_rate &gt; threshold) and instrument ETL to capture reasons for malformed or missing values.</li>
+
+          <li><strong>Medium/High</strong> — Define a documented handling policy for missing BOOKING_VALUE: either impute (example: median by VEHICLE_TYPE or PAYMENT_METHOD with an 'is_imputed' flag) or exclude from revenue calculations. Surface imputed vs original values.</li>
+
+          <li><strong>Medium</strong> — Implement an outlier policy: auto-flag borderline outliers, require manual reconciliation for very large fares (verify with payment systems), and correct or drop obvious errors during ETL (e.g., negative or implausible magnitudes).</li>
+
+          <li><strong>Medium</strong> — Only compute group-level percentiles/IQR when the group has sufficient non-null samples (suggested threshold: non_null_count &gt;= 50); otherwise fall back to overall thresholds.</li>
+
+          <li><strong>Medium</strong> — Add automated data-quality tests to CI/monitoring: enforce allowed vocabularies for VEHICLE_TYPE and PAYMENT_METHOD, numeric range checks, and time-series alerts for sudden spikes in null/outlier rates.</li>
+
+          <li><strong>Low/Medium</strong> — Version and store profiling artifacts and thresholds used (p01, q1, q3, p99) so outlier identification is reproducible and auditable; include representative flagged rows for operational review.</li>
+
+          <li><strong>Low/Medium</strong> — After remediation, re-run profiling regularly and track key metrics (null rate, outlier rate, per-group coverage) to validate improvements and detect regressions.</li>
+        </ol>
+
+        <p class="note">Next operational steps: prioritize ingestion normalization and a full-profile run, then instrument monitoring and group-size safeguards to avoid unstable group statistics.</p>
+      </div>
+    </section>
+
+    <section id="profiling-link">
+      <h2>Detailed Profiling Report</h2>
+      <div class="card">
+        <p>Access the full profiling artifact (includes representative flagged rows, JSON metadata, and any embedded visualizations):</p>
+        <p><a class="btn" href="./RIDEBOOKING_profile_20251016_133346.html">Open Detailed Profiling Report</a></p>
+        <p class="note" style="margin-top:8px;">Filename: <strong>RIDEBOOKING_profile_20251016_133346.html</strong></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Report generated by Data Profiling process. For questions or to schedule a full-table profiling run, contact the Data Quality team.</p>
+  </footer>
+</body>
+</html>

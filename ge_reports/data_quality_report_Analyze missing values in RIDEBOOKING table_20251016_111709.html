@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RIDEBOOKING Data Quality Report</title>
+  <style>
+    /* Minimal inline CSS for readability and tab navigation */
+    body{font-family: Arial, Helvetica, sans-serif;line-height:1.45;color:#222;margin:0;padding:0;background:#f7f8fa}
+    .container{max-width:1100px;margin:28px auto;padding:24px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+    header{border-bottom:1px solid #e6e9ee;padding-bottom:14px;margin-bottom:18px}
+    header h1{margin:0;font-size:22px}
+    header p.date{margin:6px 0 0;color:#555;font-size:13px}
+    nav.tabs{display:flex;gap:8px;margin:14px 0 22px}
+    nav a.tab{padding:10px 14px;background:#eef3ff;color:#0b3b8a;text-decoration:none;border-radius:6px;font-weight:600;border:1px solid #d7e3ff}
+    nav a.tab[aria-current="page"]{background:#d7e9ff}
+    nav a.link{padding:10px 14px;background:#fff;color:#0b3b8a;text-decoration:none;border-radius:6px;border:1px solid #d7e3ff}
+    section{margin-bottom:20px}
+    h2{font-size:18px;margin:8px 0 10px}
+    h3{font-size:15px;margin:10px 0}
+    p{margin:6px 0}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px}
+    .metric{padding:12px;background:#fbfdff;border:1px solid #eef3f8;border-radius:6px}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    table th,table td{padding:8px 10px;border:1px solid #e9eef4;text-align:left;font-size:13px}
+    table th{background:#f4f7fb}
+    ul{margin:8px 0 8px 18px}
+    .kpi-list{display:block}
+    .visual-placeholder{height:220px;background:linear-gradient(135deg,#fbfbfd,#f1f5fb);border:1px dashed #dbe6f6;color:#6b7790;display:flex;align-items:center;justify-content:center;border-radius:6px}
+    .btn-report{display:inline-block;padding:10px 14px;background:#0b66c2;color:#fff;text-decoration:none;border-radius:6px;border:0;margin-top:8px}
+    footer{border-top:1px solid #e6e9ee;padding-top:12px;color:#666;font-size:13px;margin-top:22px}
+    .note{color:#444;font-size:13px;background:#fff9e6;padding:10px;border-left:4px solid #ffc857;margin:10px 0;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <header>
+      <h1>RIDEBOOKING — Data Quality & Missing Values Analysis</h1>
+      <p class="date">Date: 2025-10-16</p>
+    </header>
+
+    <nav class="tabs" aria-label="Report navigation">
+      <a href="#overview" class="tab" aria-current="page">Overview Report</a>
+      <a href="./RIDEBOOKING_profile_20251016_083617.html" class="link">Detailed Profiling</a>
+    </nav>
+
+    <main>
+      <section id="executive-summary" aria-labelledby="es-heading">
+        <h2 id="es-heading">Executive Summary</h2>
+        <p>Investigation of the RIDEBOOKING table (150,000 rows) found two primary, high-impact issues and several secondary issues. The highest-impact problem is that <strong>BOOKING_VALUE</strong> and <strong>RIDE_DISTANCE</strong> contain the literal string <code>'null'</code> (48,000 occurrences each, ≈32% of rows) instead of SQL NULL or numeric types, which prevents numeric aggregation and analysis until normalized. A secondary issue is duplicate <strong>BOOKING_ID</strong> values (1,224 duplicate groups, 2,457 rows in duplicate groups, duplicate rate ≈1.64%).</p>
+
+        <p>TRY_CAST profiling (100k-row sample) indicates non-<code>'null'</code> raw values are generally convertible to numeric and no widespread negative/zero numeric values were observed. Several completeness and cross-field checks failed to run end-to-end due to SQL compilation/type-cast issues (TRY_CAST on native DATE/TIME and inconsistent UNION branch types) in the investigation scripts; however partial runs and samples revealed cross-field contradictions (e.g., Booking Status='Completed' while cancellation/incomplete flags are populated) and many cancelled/no-driver sample rows correlate with <code>BOOKING_VALUE='null'</code>. The pattern of findings suggests ingestion/ETL validation and schema-enforcement gaps.</p>
+
+        <p class="note"><strong>Recommended immediate actions:</strong> normalize literal <code>'null'</code> text to SQL NULL and cast numeric fields to DECIMAL; enforce schema at ingest; implement deduplication rules; fix completeness/cross-field checks; re-run profiling and monitoring.</p>
+      </section>
+
+      <section id="data-profile-overview" aria-labelledby="dp-heading">
+        <h2 id="dp-heading">Data Profile Overview</h2>
+        <div class="metrics" role="list">
+          <div class="metric" role="listitem"><strong>Table</strong><div>RIDEBOOKING</div></div>
+          <div class="metric" role="listitem"><strong>Total rows</strong><div>150,000</div></div>
+          <div class="metric" role="listitem"><strong>Profiles generated</strong><div>1 (profiling report available)</div></div>
+          <div class="metric" role="listitem"><strong>Queries executed</strong><div>16 across 4 tasks</div></div>
+        </div>
+
+        <h3>Observed schema & notable fields</h3>
+        <p>Fields referenced in the analysis (explicitly called out in profiling):</p>
+        <ul>
+          <li>BOOKING_ID (identifier; duplicates observed)</li>
+          <li>BOOKING_VALUE (numeric values stored as VARCHAR in many rows — contains literal string <code>'null'</code>)</li>
+          <li>RIDE_DISTANCE (numeric values stored as VARCHAR in many rows — contains literal string <code>'null'</code>)</li>
+          <li>Booking Status (status text; cross-field contradictions observed)</li>
+          <li>Cancellation / incomplete flags (boolean-like indicators; contradictions with status observed)</li>
+          <li>DATE/TIME fields (native DATE/TIME types caused TRY_CAST compilation issues in some completeness checks)</li>
+        </ul>
+
+        <p><strong>Schema note:</strong> The analysis indicates numeric content is stored as textual values (VARCHAR) for BOOKING_VALUE and RIDE_DISTANCE, with many rows containing the literal text <code>'null'</code> rather than SQL NULL. This should be treated as a schema-enforcement gap at ingest.</p>
+      </section>
+
+      <section id="data-quality-assessment" aria-labelledby="dq-heading">
+        <h2 id="dq-heading">Data Quality Assessment</h2>
+
+        <h3>Completeness & Nulls</h3>
+        <table aria-describedby="completeness-desc">
+          <thead>
+            <tr><th>Field</th><th>Observed issue</th><th>Count / Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BOOKING_VALUE</td><td>Literal string <code>'null'</code> stored (not SQL NULL)</td><td>48,000 occurrences (~32%); 0 SQL NULLs reported in numeric integrity checks</td></tr>
+            <tr><td>RIDE_DISTANCE</td><td>Literal string <code>'null'</code> stored (not SQL NULL)</td><td>48,000 occurrences (~32%); 0 SQL NULLs reported in numeric integrity checks</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Uniqueness / Duplicates</h3>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Total rows</td><td>150,000</td></tr>
+            <tr><td>Duplicate BOOKING_ID groups (&gt;1)</td><td>1,224 distinct BOOKING_IDs</td></tr>
+            <tr><td>Rows in duplicate groups</td><td>2,457</td></tr>
+            <tr><td>Duplicate extra records (beyond first per group)</td><td>1,233</td></tr>
+            <tr><td>Approx. duplicate rate</td><td>≈1.64%</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Type-cast & query compilation issues</h3>
+        <ul>
+          <li>TRY_CAST was applied to native DATE/TIME values in some completeness queries causing compilation errors (e.g., 'TRY_CAST cannot be used with DATE->VARCHAR').</li>
+          <li>Some UNION branches returned inconsistent column types/arity, preventing a single-run column-level completeness inventory.</li>
+          <li>As a result, several completeness and cross-field checks did not complete end-to-end; partial runs and samples were used to surface observed issues.</li>
+        </ul>
+
+        <h3>Cross-field inconsistencies</h3>
+        <p>Partial checks and sample inspection revealed:</p>
+        <ul>
+          <li>Rows where Booking Status = 'Completed' while cancellation/incomplete flags are populated (count not fully determined due to failed end-to-end checks).</li>
+          <li>Many cancelled/no-driver sample rows correlate with <code>BOOKING_VALUE = 'null'</code>.</li>
+          <li>Exact contradiction counts require focused query re-runs after addressing the casting/UNION issues.</li>
+        </ul>
+
+        <h3>Conversion/format profiling</h3>
+        <p>TRY_CAST profiling performed on a 100k-row sample indicates conversion_failures = 0 for non-<code>'null'</code> raw values for numeric fields, i.e., aside from the literal <code>'null'</code> strings the other textual values are generally convertible to numeric types.</p>
+
+        <h3>Root-cause signal</h3>
+        <p>The combination of large literal <code>'null'</code> usage in numeric fields, storage of numeric data as VARCHAR, duplicates, and cross-field contradictions suggests gaps in ingestion/ETL validation and lack of enforced schema (data contract).</p>
+      </section>
+
+      <section id="key-kpis-trends" aria-labelledby="kpi-heading">
+        <h2 id="kpi-heading">Key KPIs and Trends</h2>
+        <table>
+          <thead>
+            <tr><th>KPI</th><th>Value / Finding</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Rows analyzed</td><td>150,000</td></tr>
+            <tr><td>BOOKING_VALUE literal 'null' count</td><td>48,000 (~32%)</td></tr>
+            <tr><td>RIDE_DISTANCE literal 'null' count</td><td>48,000 (~32%)</td></tr>
+            <tr><td>Duplicate BOOKING_ID groups</td><td>1,224 distinct IDs &gt;1 occurrence</td></tr>
+            <tr><td>Rows in duplicate groups</td><td>2,457 (duplicate extra rows = 1,233)</td></tr>
+            <tr><td>Duplicate rate</td><td>≈1.64%</td></tr>
+            <tr><td>Conversion_failures (TRY_CAST on non-'null' values)</td><td>0 in 100k-row sample</td></tr>
+            <tr><td>Profiles generated</td><td>1 (HTML/JSON available)</td></tr>
+            <tr><td>Queries executed during investigation</td><td>16 across 4 tasks</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Trend observations (from provided analysis)</h3>
+        <ul>
+          <li>High proportion (~32%) of numeric fields containing literal <code>'null'</code> suggests a systemic ingestion pattern rather than isolated corruption.</li>
+          <li>Duplication is present but relatively low (~1.64%); it still merits deduplication rules due to potential downstream impact on analytics and billing.</li>
+          <li>Cross-field contradictions surfaced in samples, indicating business-rule validation is not enforced upstream.</li>
+        </ul>
+      </section>
+
+      <section id="visualizations" aria-labelledby="viz-heading">
+        <h2 id="viz-heading">Visualizations</h2>
+        <p>No plot images were provided with the input. Placeholders below indicate recommended visuals to include in a follow-up run where charts/images are available:</p>
+
+        <h3>Suggested visuals</h3>
+        <ul>
+          <li>Bar chart: counts of literal <code>'null'</code> vs SQL NULL vs valid numeric for BOOKING_VALUE and RIDE_DISTANCE.</li>
+          <li>Histogram: distribution of BOOKING_VALUE after normalization/TRY_CAST.</li>
+          <li>Time series: trend of literal-<code>'null'</code> occurrences by ingestion date (if available).</li>
+        </ul>
+
+        <div class="visual-placeholder" role="img" aria-label="Placeholder for missing-values bar chart">Placeholder: Missing-values bar chart (not provided)</div>
+        <div style="height:12px"></div>
+        <div class="visual-placeholder" role="img" aria-label="Placeholder for duplication heatmap">Placeholder: Duplicate BOOKING_ID overview (not provided)</div>
+      </section>
+
+      <section id="recommendations" aria-labelledby="rec-heading">
+        <h2 id="rec-heading">Recommendations</h2>
+
+        <h3>Immediate (high priority)</h3>
+        <ol>
+          <li>Immediate normalization: convert literal <code>'null'</code> strings to SQL NULL for BOOKING_VALUE and RIDE_DISTANCE (and any other columns with <code>'null'</code> text) as an urgent ETL patch. After normalization, persist or expose BOOKING_VALUE and RIDE_DISTANCE as numeric types (DECIMAL) in the curated layer.</li>
+          <li>Enforce schema and data-contract at ingest: add type checks and null-semantics validation to ingestion jobs. Route malformed rows to a quarantine table/topic with reason metadata and alerting instead of silently storing bad values.</li>
+          <li>Implement deduplication rules: define a business rule (e.g., keep latest by DATE+TIME, prefer 'Completed' status, or first-seen) and dedupe during ETL or via a deduped view. Track source/retry IDs upstream to prevent reoccurrence.</li>
+        </ol>
+
+        <h3>Short-to-medium term</h3>
+        <ol>
+          <li>Fix completeness and cross-field checks: re-run per-column completeness queries using TO_VARCHAR/TO_CHAR for DATE/TIME when checking literal text and TRY_CAST only on VARCHAR numeric fields. Avoid mixing heterogeneous casts in large UNIONs — run focused COUNT() and SAMPLE (LIMIT 5–10) queries per rule.</li>
+          <li>Decide backfill policy for historical BOOKING_VALUE on cancelled/no-driver rides (NULL vs 0) and apply documented backfill if required for downstream consumers.</li>
+          <li>Create a short-term curated view exposing normalized numeric columns so analytics can resume, for example: <code>BOOKING_VALUE_NUM = TRY_CAST(NULLIF(LOWER(TRIM(BOOKING_VALUE)),'null') AS DECIMAL(18,4))</code>.</li>
+        </ol>
+
+        <h3>Monitoring & governance</h3>
+        <ol>
+          <li>Add data-quality monitoring and automated tests (daily jobs and CI checks) for: percent literal-<code>'null'</code> by column, conversion_failures, duplicate-rate, and cross-field contradiction counts; alert when thresholds are breached.</li>
+          <li>Track remediation progress and re-run profiling after ETL fixes to validate improvements.</li>
+        </ol>
+      </section>
+
+      <section id="profiling-report-link" aria-labelledby="link-heading">
+        <h2 id="link-heading">Detailed Profiling Report</h2>
+        <p>The full profiling HTML report is available here:</p>
+        <a class="btn-report" href="./RIDEBOOKING_profile_20251016_083617.html">Open Detailed Profiling Report (RIDEBOOKING_profile_20251016_083617.html)</a>
+        <p style="margin-top:10px">A machine-readable JSON profile is also available as: <code>RIDEBOOKING_profile_20251016_083621.json</code> (relative path not provided above — request if you need the JSON linked).</p>
+      </section>
+
+    </main>
+
+    <footer>
+      <div>Prepared by: Data Quality & Reporting Team</div>
+      <div style="margin-top:6px">Notes: This report is based solely on the investigation outputs provided. Do not extrapolate beyond the counts and facts present in the supplied analysis. To complete unresolved counts (cross-field contradictions, full completeness inventory), apply the recommended fixes (normalization and query casting corrections) and re-run the profiling suite.</div>
+    </footer>
+  </div>
+</body>
+</html>

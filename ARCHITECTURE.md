@@ -19,8 +19,8 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  Phase 1:    │      │  Phase 2:    │     │  Phase 3:    │
 │  Planning    │─────▶│ Investigation│────▶│  Analysis    │
 └──────────────┘      └──────────────┘     └──────┬───────┘
-                                                   │
-                                                   ▼
+                                                  │
+                                                  ▼
                                           ┌──────────────┐
                                           │  Phase 4:    │
                                           │  Reporting   │
@@ -60,23 +60,23 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  │ │   • success_criteria[]                                  │ │   │
 │  │ └─────────────────────────────────────────────────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
+│                                                                    │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │ PHASE 2: INVESTIGATION                                      │   │
-│  │ ┌────────────────────┐      ┌──────────────────────────┐   │   │
-│  │ │ DataAgent          │      │ DataProfilingAgent       │   │   │
-│  │ │ - SQL queries      │      │ - ydata-profiling        │   │   │
-│  │ │ - Evidence         │      │ - Statistical analysis   │   │   │
-│  │ │   gathering        │      │ - HTML/JSON reports      │   │   │
-│  │ │ - Tools:           │      │ - Tools:                 │   │   │
-│  │ │   • query_tool     │      │   • profile_tool         │   │   │
-│  │ │   • table_info     │      │   • (uses query_engine)  │   │   │
-│  │ │   • list_tables    │      │                          │   │   │
-│  │ │ - Output:          │      │ - Output:                │   │   │
-│  │ │   DataAgentReport  │      │   DataProfilingReport    │   │   │
-│  │ └────────────────────┘      └──────────────────────────┘   │   │
+│  │ ┌────────────────────┐      ┌──────────────────────────┐    │   │
+│  │ │ DataAgent          │      │ DataProfilingAgent       │    │   │
+│  │ │ - SQL queries      │      │ - ydata-profiling        │    │   │
+│  │ │ - Evidence         │      │ - Statistical analysis   │    │   │
+│  │ │   gathering        │      │ - HTML/JSON reports      │    │   │
+│  │ │ - Tools:           │      │ - Tools:                 │    │   │
+│  │ │   • query_tool     │      │   • profile_tool         │    │   │
+│  │ │   • table_info     │      │   • (uses query_engine)  │    │   │
+│  │ │   • list_tables    │      │                          │    │   │
+│  │ │ - Output:          │      │ - Output:                │    │   │
+│  │ │   DataAgentReport  │      │   DataProfilingReport    │    │   │
+│  │ └────────────────────┘      └──────────────────────────┘    │   │
 │  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
+│                                                                    │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │ PHASE 3: ANALYSIS                                           │   │
 │  │ ┌─────────────────────────────────────────────────────────┐ │   │
@@ -94,7 +94,7 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  │ │   • required_followup_queries[]                         │ │   │
 │  │ └─────────────────────────────────────────────────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
+│                                                                    │
 │  ┌─────────────────────────────────────────────────────────────┐   │
 │  │ PHASE 4: REPORTING                                          │   │
 │  │ ┌─────────────────────────────────────────────────────────┐ │   │
@@ -107,8 +107,8 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  │ │   • thoughts                                            │ │   │
 │  │ └─────────────────────────────────────────────────────────┘ │   │
 │  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -117,7 +117,7 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │  ┌───────────────────────────────────────────────────────────────┐  │
 │  │ ModelFactory                                                  │  │
 │  │ - Creates OpenAI client instances                             │  │
-│  │ - Model: gpt-4o-mini (default)                                │  │
+│  │ - Model: gpt-5-mini (default)                                 │  │
 │  │ - Configurable temperature (when supported)                   │  │
 │  │ - API key management via environment variables                │  │
 │  └───────────────────────────────────────────────────────────────┘  │
@@ -127,32 +127,32 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 ┌─────────────────────────────────────────────────────────────────────┐
 │                       TOOL FACTORY LAYER                            │
 ├─────────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────────────┐  ┌────────────────────────────────┐  │
-│  │ SnowflakeQuery           │  │ SnowflakeDataProfiling         │  │
-│  │ ToolFactory              │  │ ToolFactory                    │  │
-│  │                          │  │                                │  │
-│  │ - create_query_tool()    │  │ - create_profile_tool()        │  │
-│  │ - create_table_info()    │  │                                │  │
-│  │ - create_list_tables()   │  │                                │  │
-│  └──────────┬───────────────┘  └────────────┬───────────────────┘  │
-│             │                               │                      │
-│  ┌──────────┴───────────────┐  ┌────────────┴───────────────────┐  │
-│  │ ProfilingReportReader    │  │                                │  │
-│  │ ToolFactory              │  │                                │  │
-│  │                          │  │                                │  │
-│  │ - create_read_tool()     │  │                                │  │
-│  └──────────────────────────┘  └────────────────────────────────┘  │
+│  ┌──────────────────────────┐  ┌────────────────────────────────┐   │
+│  │ SnowflakeQuery           │  │ SnowflakeDataProfiling         │   │
+│  │ ToolFactory              │  │ ToolFactory                    │   │
+│  │                          │  │                                │   │
+│  │ - create_query_tool()    │  │ - create_profile_tool()        │   │
+│  │ - create_table_info()    │  │                                │   │
+│  │ - create_list_tables()   │  │                                │   │
+│  └──────────┬───────────────┘  └────────────┬───────────────────┘   │
+│             │                               │                       │
+│  ┌──────────┴───────────────┐  ┌────────────┴───────────────────┐   │
+│  │ ProfilingReportReader    │  │                                │   │
+│  │ ToolFactory              │  │                                │   │
+│  │                          │  │                                │   │
+│  │ - create_read_tool()     │  │                                │   │
+│  └──────────────────────────┘  └────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           TOOL LAYER                                │
 ├─────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ SnowflakeQueryEngine                                        │   │
-│  │ - execute_query() → DataFrame/JSON/Dict                     │   │
-│  │ - get_table_info() → Schema information                     │   │
-│  │ - list_tables() → Available tables                          │   │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │ SnowflakeQueryEngine                                        │    │
+│  │ - execute_query() → DataFrame/JSON/Dict                     │    │
+│  │ - get_table_info() → Schema information                     │    │
+│  │ - list_tables() → Available tables                          │    │
 │  │ - test_connection() → Connection validation                 │   │
 │  └─────────────────────┬───────────────────────────────────────┘   │
 │                        │                                            │
@@ -177,7 +177,7 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │                     EXTERNAL SERVICES LAYER                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │  ┌──────────────────────┐         ┌───────────────────────────┐    │
-│  │ Snowflake Database   │         │ ydata-profiling           │    │
+│  │ Snowflake DataWH     │         │ ydata-profiling           │    │
 │  │ - RIDEBOOKING table  │         │ - ProfileReport           │    │
 │  │ - Tables/Views       │         │ - Statistical analysis    │    │
 │  │ - Schemas            │         │ - Correlation detection   │    │
@@ -186,7 +186,7 @@ DataSentinel is a multi-agent orchestration platform for comprehensive data qual
 │                                   │ - HTML/JSON generation    │    │
 │  ┌──────────────────────┐         └───────────────────────────┘    │
 │  │ OpenAI API           │                                           │
-│  │ - GPT-4o-mini        │                                           │
+│  │ - GPT-5-mini         │                                           │
 │  │ - Chat completions   │                                           │
 │  │ - Structured outputs │                                           │
 │  └──────────────────────┘                                           │
@@ -227,20 +227,20 @@ User Goal → PlannerAgent
          Returns: DataQualityPlan
 ```
 
-### Phase 2: Investigation
+### Phase 2: Investigation (Parallel Execution)
 ```
 DataQualityPlan → [DataAgent + DataProfilingAgent]
                            │
            ┌───────────────┴───────────────┐
            ▼                               ▼
-      DataAgent                   DataProfilingAgent
+    [Multiple Query Tasks]       [Multiple Profiling Tasks]
+    (Executed Concurrently)      (Executed Concurrently)
            │                               │
-    Execute SQL queries             Profile datasets
-    Gather evidence                 Generate reports
-    Analyze samples                 Extract statistics
+    Each task runs in                Each task runs in
+    separate async task             separate async task
            │                               │
            ▼                               ▼
-    DataAgentReport              DataProfilingReport
+    List[DataAgentReport]        List[DataProfilingReport]
            │                               │
            └───────────────┬───────────────┘
                            ▼
@@ -292,36 +292,45 @@ User: "Analyze missing values in RIDEBOOKING table"
 PlannerAgent creates plan:
   • Query Task 1: "Check for null values in critical columns"
   • Query Task 2: "Analyze missing patterns by date"
+  • Query Task 3: "Identify negative or zero booking values"
   • Profiling Task 1: "Profile RIDEBOOKING to get distributions"
   │
   ▼
-DataAgent executes:
-  • SELECT COUNT(*) FROM RIDEBOOKING WHERE BOOKING_VALUE IS NULL
-  • SELECT DATE, COUNT(*) WHERE ... IS NULL GROUP BY DATE
+DataAgent executes (3 tasks concurrently via asyncio.gather):
+  Task 1: SELECT COUNT(*) FROM RIDEBOOKING WHERE BOOKING_VALUE IS NULL
+  Task 2: SELECT DATE, COUNT(*) WHERE ... IS NULL GROUP BY DATE
+  Task 3: SELECT * FROM RIDEBOOKING WHERE BOOKING_VALUE <= 0
   │
-DataProfilingAgent executes:
-  • SELECT * FROM RIDEBOOKING LIMIT 100000
-  • Creates ProfileReport
-  • Generates HTML + JSON reports
+DataProfilingAgent executes (concurrently):
+  Task 1: SELECT * FROM RIDEBOOKING LIMIT 100000
+         Creates ProfileReport
+         Generates HTML + JSON reports
+  │
+  ▼
+Results aggregated:
+  • List[DataAgentReport] with 3 query results
+  • List[DataProfilingReport] with 1 profiling result
   │
   ▼
 SummarizerAgent analyzes:
-  • Correlates query results with profiling stats
+  • Reads profiling JSON using ProfilingReportReaderTool
+  • Correlates all query results with profiling stats
   • Identifies: "15% missing BOOKING_VALUE (Critical)"
   • Recommends: "Impute using median per vehicle type"
   │
   ▼
 ReportAgent formats:
   • Professional HTML with all findings
-  • Links to profiling reports
+  • Tab navigation linking to profiling reports
   • Visualizations and tables
+  • Relative links to detailed profiling HTML
   │
   ▼
 Output:
-  • ge_reports/data_quality_report_*.html
-  • ge_reports/*_profile_*.html
-  • ge_reports/*_profile_*.json
-  • ge_reports/workflow_results_*.json
+  • ge_reports/data_quality_report_*.html (main report)
+  • ge_reports/*_profile_*.html (profiling report)
+  • ge_reports/*_profile_*.json (profiling data)
+  • ge_reports/workflow_results_*.json (complete workflow)
 ```
 
 ## Component Details
@@ -331,7 +340,13 @@ Output:
 All agents use Pydantic models for structured communication:
 
 ```python
-# Planning
+# Planning (PlannerAgent.py)
+QueryTask:
+  - goal: str  # What DataAgent should investigate
+
+ProfilingTask:
+  - goal: str  # What to profile
+
 DataQualityPlan:
   - goal: str
   - query_tasks: list[QueryTask]
@@ -339,18 +354,40 @@ DataQualityPlan:
   - execution_sequence: list[str]
   - success_criteria: list[str]
 
-# Investigation
+# Investigation (DataAgent.py)
+QueryExecution:
+  - investigation_goal: str
+  - sql_query: str
+  - row_count: int
+  - sample_data: str
+  - summary: str
+
 DataAgentReport:
   - plan_goal: str
   - tasks_executed: list[QueryExecution]
   - next_steps: list[str]
+
+# Profiling (DataProfilingAgent.py)
+DataProfilingTasksExecuted:
+  - task_purpose: str
+  - query_or_dataset: str
+  - row_count: int
+  - column_count: int
+  - html_report_path: str
+  - json_report_path: str
 
 DataProfilingReport:
   - plan_goal: str
   - tasks_executed: list[DataProfilingTasksExecuted]
   - next_steps: list[str]
 
-# Analysis
+# Analysis (SummarizerAgent.py)
+DataQualityIssue:
+  - type: str
+  - severity: str  # "Critical", "High", "Medium", "Low"
+  - evidence_query: str
+  - evidence_description: str
+
 DataQualityAgentReport:
   - summary: str
   - issues: list[DataQualityIssue]
@@ -358,7 +395,7 @@ DataQualityAgentReport:
   - required_followup_queries: list[str]
   - analysis_complete: bool
 
-# Reporting
+# Reporting (ReportAgent.py)
 ReportResponse:
   - html: str
   - thoughts: str
@@ -366,11 +403,58 @@ ReportResponse:
 
 ### Agent Communication
 
-Agents communicate via AutoGen's **RoundRobinGroupChat** with:
-- Structured message types
-- Custom termination conditions
+### Orchestrator Architecture
+
+The `Orchestrator` class coordinates the entire workflow with the following features:
+
+**Agent Communication**:
+- Uses AutoGen's **RoundRobinGroupChat** for single-agent teams per phase
+- **Structured message types**: Using `StructuredMessage[DataQualityPlan]`, `StructuredMessage[DataAgentReport]`, etc.
+- **Custom termination conditions**: `MaxMessageTermination` with configurable max_messages per phase
 - Message history tracking
-- Streaming support (optional)
+- Streaming support (optional, disabled for structured outputs)
+- **Pydantic-based structured outputs**: All agents return typed Pydantic models instead of plain text
+- **Reflection disabled**: `reflect_on_tool_use=False` to prevent JSON parsing issues with structured outputs
+
+**Concurrent Execution** (Phase 2 - Investigation):
+```python
+# Execute all query tasks concurrently
+query_coroutines = [execute_query_task(task) for task in plan.query_tasks]
+query_results = await asyncio.gather(*query_coroutines, return_exceptions=True)
+
+# Execute all profiling tasks concurrently
+profiling_coroutines = [execute_profiling_task(task) for task in plan.profiling_tasks]
+profiling_results = await asyncio.gather(*profiling_coroutines, return_exceptions=True)
+```
+
+**Key Methods**:
+- `run_analysis(goal)`: Main entry point for complete workflow
+- `_run_planning_phase(goal)`: Phase 1 - Create execution plan
+- `_run_investigation_phase(plan)`: Phase 2 - Execute tasks concurrently
+- `_run_analysis_phase(...)`: Phase 3 - Synthesize findings
+- `_run_reporting_phase(...)`: Phase 4 - Generate HTML report
+- `_save_results(results)`: Save complete workflow results to JSON
+
+### Tool Architecture
+
+```
+### Model Configuration
+
+**ModelFactory** (`agent/model/ModelFactory.py`):
+- Creates `OpenAIChatCompletionClient` instances
+- Default model: `gpt-5-mini` (OpenAI GPT-4o-mini alias)
+- API key loaded from environment variable `OPENAI_API_KEY`
+- Uses `python-dotenv` for environment configuration
+- No temperature configuration (uses model defaults)
+
+```python
+@staticmethod
+def get_model(model: str = "gpt-5-mini"):
+    return OpenAIChatCompletionClient(
+        model=model,
+        api_key=os.environ.get("OPENAI_API_KEY")
+    )
+```
 
 ### Tool Architecture
 
@@ -380,6 +464,7 @@ Agent → ToolFactory → Tool → External Service
                               ├─ SnowflakeQueryEngine → Snowflake DB
                               ├─ ydata-profiling → Statistical analysis
                               └─ File system → Read/write reports
+```
 ```
 
 ## File Structure
@@ -426,39 +511,45 @@ DataSentinel/
 │   └── workflow_results_*.json     # Complete workflow outputs
 │
 ├── app.py                          # Main application entry
-├── orchestrator_example.py         # Usage examples
+├── WorkflowRunner.py               # Workflow execution runner
 ├── requirements.txt                # Dependencies
 ├── setup.py                        # Package setup
-├── ARCHITECTURE.md                 # This file
-├── README_Orchestrator.md          # Orchestrator documentation
-└── QUICKREF_Orchestrator.md        # Quick reference guide
+├── run_tests.sh                    # Test execution script
+└── ARCHITECTURE.md                 # This file
 ```
 
 ## Technology Stack
 
 ### Core Technologies
 - **Python 3.11+**: Programming language
-- **AutoGen 0.7+**: Multi-agent framework
-  - `autogen-core`: Core agent functionality
-  - `autogen-agentchat`: Chat-based agents
-  - `autogen-ext[openai]`: OpenAI integration
-- **ydata-profiling**: Statistical data profiling
+- **AutoGen 0.7.5**: Multi-agent framework
+  - `autogen-core==0.7.5`: Core agent functionality
+  - `autogen-agentchat==0.7.5`: Chat-based agents
+  - `autogen-ext[openai]==0.7.5`: OpenAI integration
+- **ydata-profiling 4.17.0**: Statistical data profiling
 - **Snowflake**: Cloud data warehouse
-- **Pandas**: Data manipulation
-- **OpenAI GPT-4o-mini**: Language model
+  - `snowflake-connector-python==3.18.0`: Python connector
+  - `snowflake-sqlalchemy==1.7.7`: SQLAlchemy integration
+- **Pandas 2.3.3**: Data manipulation
+- **OpenAI GPT-4o-mini**: Language model (accessed via gpt-5-mini alias)
 
 ### Key Libraries
 ```
-autogen-core>=0.7.0
-autogen-agentchat>=0.7.0
-autogen-ext[openai]>=0.7.0
-snowflake-connector-python>=3.12.0
-ydata-profiling>=4.0.0
-sqlalchemy>=2.0.0
-pandas>=2.0.0
-pydantic>=2.0.0
-python-dotenv>=1.0.0
-matplotlib>=3.7.0
+# AutoGen Framework - Multi-agent orchestration
+autogen-core==0.7.5
+autogen-agentchat==0.7.5
+autogen-ext[openai]==0.7.5
+
+# Snowflake Database Integration
+snowflake-connector-python==3.18.0
+snowflake-sqlalchemy==1.7.7
+
+# Data Analysis and Profiling
+pandas==2.3.3
+ydata-profiling==4.17.0
+
+# Environment Configuration
+python-dotenv==1.1.1
 ```
 
 ### Important Configuration
@@ -469,7 +560,16 @@ import matplotlib
 matplotlib.use('Agg')  # Non-GUI backend for thread safety on macOS
 ```
 
-This prevents the "NSWindow should only be instantiated on the main thread" error when running agents in threads.
+This prevents the "NSWindow should only be instantiated on the main thread" error when running profiling agents with async/concurrent execution.
+
+**Agent System Messages**:
+All agents use JSON-formatted system messages with:
+- Clear role definitions
+- Structured output format specifications
+- Query best practices (DataAgent includes SQL error handling guidelines)
+- Database schema information
+- Termination conditions
+- Constraints and security guidelines
 
 ## Environment Configuration
 
@@ -513,8 +613,9 @@ OPENAI_API_KEY=your_openai_api_key
 
 ### Horizontal Scaling
 - Independent agent instances
-- Parallel task execution (planned)
+- **Parallel task execution (implemented)**: Multiple query tasks and profiling tasks execute concurrently using asyncio.gather()
 - Distributed report generation
+- Each task runs in its own async coroutine for concurrent execution
 
 ### Vertical Scaling
 - Adjustable Snowflake warehouse sizes
@@ -526,30 +627,50 @@ OPENAI_API_KEY=your_openai_api_key
 - Incremental profiling support
 - Selective column analysis
 - Minimal mode for faster profiling
+- Concurrent execution of multiple investigation and profiling tasks
+- Exception handling per task to prevent cascade failures
 
 ### Resource Management
 - Connection pooling
 - Automatic connection cleanup
 - Memory-efficient DataFrame operations
 - Streaming support for large result sets
+- Thread-safe matplotlib backend (Agg) for concurrent profiling
 
 ## Error Handling & Resilience
 
 ### Agent-Level
 - Try-catch blocks in all agent operations
-- Structured error reporting
+- Structured error reporting via Pydantic models
 - Graceful degradation (phases can fail independently)
+- `reflect_on_tool_use=False` to prevent JSON parsing issues
 
 ### Tool-Level
 - Connection retry logic
 - Query timeout handling
-- Invalid data handling (e.g., TRY_CAST in SQL)
+- Invalid data handling (e.g., TRY_CAST for numeric conversions only)
+- Special handling for DATE/TIME columns (use CAST/TO_VARCHAR instead of TRY_CAST)
 
 ### Orchestrator-Level
 - Phase-by-phase error tracking
-- Comprehensive error logging
-- Traceback capture
+- Comprehensive error logging with emoji indicators (🔧, ✅, ❌, ⚠️)
+- Traceback capture in workflow results
 - Partial result preservation
+- **Per-task exception handling**: `asyncio.gather(..., return_exceptions=True)` prevents one task failure from crashing all concurrent tasks
+- Error filtering: Individual task failures logged but don't stop workflow
+
+### Concurrent Execution Error Handling
+```python
+# Execute tasks concurrently with exception handling
+results = await asyncio.gather(*coroutines, return_exceptions=True)
+
+# Filter out exceptions
+for result in results:
+    if isinstance(result, Exception):
+        print(f"Task failed with error: {str(result)}")
+    elif result is not None:
+        all_results.append(result)
+```
 
 ## Monitoring & Observability
 
@@ -580,7 +701,14 @@ OPENAI_API_KEY=your_openai_api_key
 6. **Resilience**: Failures in one phase don't crash the entire workflow
 7. **Testability**: Each component can be tested independently
 
-## Future Enhancements
+## Recent Enhancements (v2.1)
+
+### Completed Features
+- [x] **Parallel agent execution**: Multiple query and profiling tasks execute concurrently using asyncio.gather()
+- [x] **Structured outputs**: All agents return typed Pydantic models for type safety
+- [x] **Concurrent task processing**: Each query/profiling task runs in separate async coroutine
+- [x] **Exception handling per task**: Failures in individual tasks don't crash the entire workflow
+- [x] **Multi-task reporting**: Support for multiple DataAgentReports and DataProfilingReports in analysis phase
 
 ### Planned Features
 - [ ] Real-time data quality monitoring
@@ -591,15 +719,16 @@ OPENAI_API_KEY=your_openai_api_key
 - [ ] Dashboard for historical trends
 - [ ] Slack/Teams notifications
 - [ ] API endpoint for programmatic access
-- [ ] Parallel agent execution
 - [ ] Incremental profiling for large tables
+- [ ] Dynamic agent scaling based on workload
 
 ### Architecture Evolution
 - [ ] Plugin system for custom agents
-- [ ] Distributed agent execution
-- [ ] Cloud-native deployment options
+- [ ] Distributed agent execution across multiple nodes
+- [ ] Cloud-native deployment options (Kubernetes, Docker)
 - [ ] Real-time collaboration features
 - [ ] Advanced caching strategies
+- [ ] Agent performance monitoring and metrics
 
 ## References
 
@@ -611,6 +740,6 @@ OPENAI_API_KEY=your_openai_api_key
 
 ---
 
-**Last Updated**: October 14, 2025  
-**Version**: 2.0  
+**Last Updated**: October 16, 2025  
+**Version**: 2.1  
 **Architecture Status**: Production-Ready

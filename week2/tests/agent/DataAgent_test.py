@@ -15,37 +15,37 @@ async def test_team_execution():
     print("Testing Team Execution")
     print("=" * 80)
     
-    # Create the profiling agent
-    data_agent = DataAgent().get_agent()
+    # TODO: Create the profiling agent
+    # Hint: Use DataAgent().get_agent()
     
-    # Define the profiling task
-    task_str = """
-    Check for NULLs and literal 'null' string values in critical columns: BOOKING_ID, DATE, TIME, CUSTOMER_ID, Booking Status, BOOKING_VALUE, RIDE_DISTANCE, PAYMENT_METHOD, DRIVER_RATINGS, CUSTOMER_RATING, VEHICLE_TYPE, PICKUP_LOCATION, DROP_LOCATION.
-    """
+    # TODO: Define the profiling task
+    # Task should check for NULLs and literal 'null' string values in critical columns:
+    # BOOKING_ID, DATE, TIME, CUSTOMER_ID, Booking Status, BOOKING_VALUE, 
+    # RIDE_DISTANCE, PAYMENT_METHOD, DRIVER_RATINGS, CUSTOMER_RATING, 
+    # VEHICLE_TYPE, PICKUP_LOCATION, DROP_LOCATION
     
-    termination = MaxMessageTermination(max_messages=5)
-    team = RoundRobinGroupChat(
-        [data_agent],
-        termination_condition=termination,
-        custom_message_types=[StructuredMessage[DataAgentReport]]
-    )
+    # TODO: Create termination condition
+    # Hint: Use MaxMessageTermination with max_messages=5
     
-    # Run with console output
-    result = await Console(team.run_stream(task=task_str))
-
-    # Extract and store result
-    all_profiling_results = []
-    for message in reversed(result.messages):
-        if hasattr(message, 'content') and isinstance(message.content, DataAgentReport):
-            all_profiling_results.append(message.content)
-            break
+    # TODO: Create RoundRobinGroupChat team
+    # Include:
+    # - List of agents (just data_agent)
+    # - termination_condition
+    # - custom_message_types with StructuredMessage[DataAgentReport]
+    
+    # TODO: Run the team with console output
+    # Hint: Use Console(team.run_stream(task=task_str))
+    
+    # TODO: Extract and store results
+    # Loop through result.messages in reverse
+    # Check for DataAgentReport content and append to all_profiling_results
     
     print("\n" + "=" * 80)
     print("Team execution completed!")
     print("=" * 80)
-    print(all_profiling_results)
     
-    return all_profiling_results
+    # TODO: Print and return the profiling results
+    pass  # Remove this when implementing
 
 async def test_data_agent_basic():
     """Test basic data agent functionality with a simple goal"""
@@ -53,14 +53,18 @@ async def test_data_agent_basic():
     print("Testing DataAgent - Basic Goal")
     print("=" * 80)
     
-    data_agent = DataAgent().get_agent()
+    # TODO: Create a DataAgent instance and get the agent
+    # Hint: Use DataAgent().get_agent()
     
-    goal = "Highlight 1 data quality issue in RIDEBOOKING table and suggest a fix"
+    # TODO: Define a data quality goal
+    # Example: "Highlight 1 data quality issue in RIDEBOOKING table and suggest a fix"
     
-    print(f"\nData Quality Goal: {goal}\n")
-    print("-" * 80)
-
-    await Console(data_agent.run_stream(task=goal))
+    # TODO: Print the goal with formatting
+    
+    # TODO: Run the agent with Console output
+    # Hint: Use Console(agent.run_stream(task=goal))
+    
+    pass  # Remove this when implementing
 
 if __name__ == "__main__":
 

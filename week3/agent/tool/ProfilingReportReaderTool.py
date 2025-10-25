@@ -38,16 +38,21 @@ class ProfilingReportReaderTool:
         Args:
             reports_dir (str): Default directory path for reading reports
         """
-        # Set up logging
-        log_level = os.environ.get('LOG_LEVEL', 'ERROR').upper()
-        numeric_level = getattr(logging, log_level, logging.ERROR)
-        logging.basicConfig(level=numeric_level)
-        self.logger = logging.getLogger(__name__)
+        # TODO: Student implementation
+        # 1. Set up logging:
+        #    - Get LOG_LEVEL from environment variable (default to 'ERROR')
+        #    - Convert to uppercase
+        #    - Get numeric level using getattr(logging, log_level, logging.ERROR)
+        #    - Configure basic logging with the numeric level
+        #    - Create a logger instance using __name__
         
-        # Set default reports directory
-        self.reports_dir = Path(reports_dir)
+        # 2. Set default reports directory:
+        #    - Convert reports_dir string to Path object
+        #    - Store as self.reports_dir
         
-        self.logger.info(f"ProfilingReportReaderTool initialized. Default reports directory: {self.reports_dir}")
+        # 3. Log initialization message at INFO level
+        
+        raise NotImplementedError("Student must implement the __init__ method")
     
     def read_json_report(self, file_path: str, pretty_print: bool) -> Dict[str, Any]:
         """
@@ -63,83 +68,47 @@ class ProfilingReportReaderTool:
             
         Returns:
             Dict[str, Any]: Result containing the JSON content as string or error information
-                - success (bool): Whether the operation succeeded
-                - content (str): The JSON content as a formatted string (if success=True)
-                - file_path (str): The path to the file that was read
-                - error (str): Error message (if success=False)
+            - success (bool): Whether the operation succeeded
+            - content (str): The JSON content as a formatted string (if success=True)
+            - file_path (str): The path to the file that was read
+            - error (str): Error message (if success=False)
         """
-        try:
-            # Convert to Path object
-            path = Path(file_path)
-            
-            # If path is relative, try to resolve it relative to reports_dir
-            if not path.is_absolute():
-                # Check if the file_path already starts with the reports_dir
-                # to avoid duplication like ge_reports/ge_reports/...
-                file_path_str = str(path)
-                reports_dir_str = str(self.reports_dir)
-                
-                if file_path_str.startswith(reports_dir_str + '/') or file_path_str.startswith(reports_dir_str + '\\'):
-                    # Path already includes reports_dir, use as-is
-                    path = Path(file_path)
-                else:
-                    # Append to reports_dir
-                    path = self.reports_dir / path
-            
-            # Check if file exists
-            if not path.exists():
-                error_msg = f"File not found: {path}"
-                self.logger.error(error_msg)
-                return {
-                    "success": False,
-                    "error": error_msg,
-                    "file_path": str(path)
-                }
-            
-            # Check if it's a file (not a directory)
-            if not path.is_file():
-                error_msg = f"Path is not a file: {path}"
-                self.logger.error(error_msg)
-                return {
-                    "success": False,
-                    "error": error_msg,
-                    "file_path": str(path)
-                }
-            
-            # Read the JSON file
-            self.logger.info(f"Reading JSON report from: {path}")
-            with open(path, 'r', encoding='utf-8') as f:
-                json_data = json.load(f)
-            
-            # Convert to string with optional pretty printing
-            if pretty_print:
-                json_string = json.dumps(json_data, indent=2, ensure_ascii=False)
-            else:
-                json_string = json.dumps(json_data, ensure_ascii=False)
-            
-            self.logger.info(f"Successfully read JSON report: {path} ({len(json_string)} characters)")
-            
-            return {
-                "success": True,
-                "content": json_string,
-                "file_path": str(path),
-                "size_bytes": len(json_string),
-                "has_content": len(json_string) > 0
-            }
-            
-        except json.JSONDecodeError as e:
-            error_msg = f"Invalid JSON format in file {file_path}: {str(e)}"
-            self.logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg,
-                "file_path": str(path) if 'path' in locals() else file_path
-            }
-        except Exception as e:
-            error_msg = f"Failed to read JSON report: {str(e)}"
-            self.logger.error(error_msg)
-            return {
-                "success": False,
-                "error": error_msg,
-                "file_path": str(path) if 'path' in locals() else file_path
-            }
+        # TODO: Student implementation
+        # 1. Convert file_path to Path object
+        #    - Use Path(file_path)
+        
+        # 2. Handle relative vs absolute paths:
+        #    - Check if path is absolute using path.is_absolute()
+        #    - If not absolute:
+        #      * Check if file_path already starts with reports_dir to avoid duplication
+        #      * If not, append to self.reports_dir using self.reports_dir / path
+        
+        # 3. Validate the file:
+        #    - Check if file exists using path.exists()
+        #    - Check if it's a file (not directory) using path.is_file()
+        #    - Return error dict if validation fails
+        
+        # 4. Read and parse JSON:
+        #    - Open file with encoding='utf-8'
+        #    - Use json.load() to parse the file
+        #    - Handle json.JSONDecodeError exception
+        
+        # 5. Convert to string:
+        #    - If pretty_print is True: use json.dumps with indent=2
+        #    - Otherwise: use json.dumps without indentation
+        #    - Set ensure_ascii=False for both cases
+        
+        # 6. Return success dictionary with:
+        #    - success: True
+        #    - content: The JSON string
+        #    - file_path: String version of the path
+        #    - size_bytes: Length of the JSON string
+        #    - has_content: Boolean indicating if content is not empty
+        
+        # 7. Handle exceptions:
+        #    - Catch json.JSONDecodeError separately for invalid JSON
+        #    - Catch general Exception for other errors
+        #    - Log errors using self.logger.error()
+        #    - Return error dictionary with success=False and error message
+        
+        raise NotImplementedError("Student must implement the read_json_report method")

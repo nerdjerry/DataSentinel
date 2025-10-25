@@ -80,477 +80,273 @@ class WorkflowLogger:
     """Custom logger for capturing workflow progress in Streamlit."""
     
     def __init__(self, update_callback=None):
-        self.logs = []
-        self.phase_status = {
-            "Phase 1: Planning": "pending",
-            "Phase 2: Investigation": "pending",
-            "Phase 3: Analysis": "pending",
-            "Phase 4: Reporting": "pending"
-        }
-        self.phase_details = {
-            "Phase 1: Planning": {},
-            "Phase 2: Investigation": {},
-            "Phase 3: Analysis": {},
-            "Phase 4: Reporting": {}
-        }
-        self.update_callback = update_callback
+        """
+        Initialize the workflow logger.
+        
+        Args:
+            update_callback: Optional callback function to trigger on updates
+        """
+        # TODO: Initialize instance variables
+        # - logs: list to store log entries
+        # - phase_status: dict with 4 phases, all set to "pending"
+        # - phase_details: dict with 4 phases, each with empty dict
+        # - update_callback: store the callback function
+        raise NotImplementedError("Students need to implement __init__ method")
     
     def log(self, message: str, level: str = "info", show_in_ui: bool = True):
-        """Add a log entry."""
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        self.logs.append({
-            "timestamp": timestamp,
-            "message": message,
-            "level": level,
-            "show_in_ui": show_in_ui
-        })
-        # Trigger callback if provided
-        if self.update_callback:
-            self.update_callback()
+        """
+        Add a log entry.
+        
+        Args:
+            message: Log message to add
+            level: Log level (info, success, error, warning)
+            show_in_ui: Whether to show this log in the UI
+        
+        TODO:
+        - Create timestamp using datetime.now().strftime("%H:%M:%S")
+        - Append log entry dict to self.logs with timestamp, message, level, show_in_ui
+        - Trigger callback if provided
+        """
+        raise NotImplementedError("Students need to implement log method")
     
     def update_phase_status(self, phase: str, status: str, details: Dict[str, Any] = None):
-        """Update the status of a phase."""
-        self.phase_status[phase] = status
-        if details:
-            self.phase_details[phase].update(details)
-        # Trigger callback if provided
-        if self.update_callback:
-            self.update_callback()
+        """
+        Update the status of a phase.
+        
+        Args:
+            phase: Phase name (e.g., "Phase 1: Planning")
+            status: New status (pending, running, complete, error)
+            details: Optional dict with phase-specific details
+        
+        TODO:
+        - Update phase status in self.phase_status
+        - Update phase details if provided
+        - Trigger callback if provided
+        """
+        raise NotImplementedError("Students need to implement update_phase_status method")
     
     def get_logs(self):
-        """Get all logs."""
-        return self.logs
+        """
+        Get all logs.
+        
+        Returns:
+            List of log entries
+        """
+        # TODO: Return the logs list
+        raise NotImplementedError("Students need to implement get_logs method")
     
     def get_phase_status(self):
-        """Get phase statuses."""
-        return self.phase_status, self.phase_details
+        """
+        Get phase statuses.
+        
+        Returns:
+            Tuple of (phase_status dict, phase_details dict)
+        """
+        # TODO: Return phase_status and phase_details
+        raise NotImplementedError("Students need to implement get_phase_status method")
 
 
 class StreamlitOrchestrator(Orchestrator):
     """Extended Orchestrator with Streamlit logging capabilities."""
     
     def __init__(self, logger: WorkflowLogger, **kwargs):
-        super().__init__(**kwargs)
-        self.logger = logger
+        """
+        Initialize StreamlitOrchestrator.
+        
+        Args:
+            logger: WorkflowLogger instance
+            **kwargs: Additional arguments for parent Orchestrator
+        
+        TODO:
+        - Call parent class __init__ with kwargs
+        - Store logger instance
+        """
+        raise NotImplementedError("Students need to implement __init__ method")
     
     async def run_analysis(self, goal: str) -> Dict[str, Any]:
-        """Override run_analysis to include Streamlit logging."""
-        results = {
-            "goal": goal,
-            "plan": None,
-            "investigation_results": None,
-            "profiling_results": None,
-            "analysis": None,
-            "report": None,
-            "success": False
-        }
+        """
+        Override run_analysis to include Streamlit logging.
         
-        try:
-            self.logger.log("Starting data quality analysis...", "info")
-            
-            # Phase 1: Planning
-            self.logger.log("Phase 1: Creating execution plan", "info")
-            self.logger.update_phase_status("Phase 1: Planning", "running")
-            plan = await self._run_planning_phase_logged(goal)
-            results["plan"] = plan
-            
-            if plan:
-                self.logger.update_phase_status(
-                    "Phase 1: Planning", 
-                    "complete",
-                    {
-                        "query_tasks": len(plan.query_tasks),
-                        "profiling_tasks": len(plan.profiling_tasks)
-                    }
-                )
-                self.logger.log(f"Phase 1 complete - Created {len(plan.query_tasks)} query tasks and {len(plan.profiling_tasks)} profiling tasks", "success")
-            else:
-                self.logger.update_phase_status("Phase 1: Planning", "error")
-                self.logger.log("Phase 1 failed - Could not create execution plan", "error")
-                results["error"] = "Planning failed"
-                return results
-            
-            # Phase 2: Investigation & Profiling
-            self.logger.log("Phase 2: Running queries and profiling data", "info")
-            self.logger.update_phase_status("Phase 2: Investigation", "running")
-            investigation_results, profiling_results = await self._run_investigation_phase_logged(plan)
-            results["investigation_results"] = investigation_results
-            results["profiling_results"] = profiling_results
-            
-            investigation_count = len(investigation_results) if investigation_results else 0
-            profiling_count = len(profiling_results) if profiling_results else 0
-            
-            self.logger.update_phase_status(
-                "Phase 2: Investigation",
-                "complete",
-                {
-                    "investigation_tasks": investigation_count,
-                    "profiling_tasks": profiling_count
-                }
-            )
-            self.logger.log(f"Phase 2 complete - Executed {investigation_count} queries and generated {profiling_count} profiles", "success")
-            
-            # Phase 3: Analysis & Summarization
-            self.logger.log("Phase 3: Analyzing findings and identifying issues", "info")
-            self.logger.update_phase_status("Phase 3: Analysis", "running")
-            analysis = await self._run_analysis_phase_logged(goal, plan, investigation_results, profiling_results)
-            results["analysis"] = analysis
-            
-            if analysis:
-                self.logger.update_phase_status(
-                    "Phase 3: Analysis",
-                    "complete",
-                    {
-                        "issues_found": len(analysis.issues),
-                        "recommendations": len(analysis.recommendations)
-                    }
-                )
-                self.logger.log(f"Phase 3 complete - Found {len(analysis.issues)} issues and created {len(analysis.recommendations)} recommendations", "success")
-            else:
-                self.logger.update_phase_status("Phase 3: Analysis", "error")
-                self.logger.log("Phase 3 failed - Could not complete analysis", "error")
-            
-            # Phase 4: Report Generation
-            self.logger.log("Phase 4: Generating final report", "info")
-            self.logger.update_phase_status("Phase 4: Reporting", "running")
-            report = await self._run_reporting_phase_logged(goal, plan, investigation_results, profiling_results, analysis)
-            results["report"] = report
-            
-            if report:
-                self.logger.update_phase_status("Phase 4: Reporting", "complete")
-                self.logger.log("Phase 4 complete - Report generated successfully", "success")
-            else:
-                self.logger.update_phase_status("Phase 4: Reporting", "error")
-                self.logger.log("Phase 4 failed - Could not generate report", "error")
-            
-            results["success"] = True
-            self.logger.log("Analysis completed successfully!", "success")
-            
-            # Save results to file
-            self._save_results(results)
-            
-            return results
-            
-        except Exception as e:
-            self.logger.log(f"Error: {str(e)}", "error")
-            results["error"] = str(e)
-            import traceback
-            results["traceback"] = traceback.format_exc()
-            return results
+        Args:
+            goal: Analysis goal string
+        
+        Returns:
+            Dictionary with analysis results
+        
+        TODO:
+        - Initialize results dictionary with all None values
+        - Log start of analysis
+        - Run each phase with proper logging and error handling:
+          - Phase 1: Planning
+          - Phase 2: Investigation & Profiling  
+          - Phase 3: Analysis & Summarization
+          - Phase 4: Report Generation
+        - Update phase status and details after each phase
+        - Handle exceptions and log errors
+        - Save results to file
+        - Return results dictionary
+        """
+        raise NotImplementedError("Students need to implement run_analysis method")
     
     async def _run_planning_phase_logged(self, goal: str):
-        """Planning phase with logging."""
-        try:
-            result = await super()._run_planning_phase(goal)
-            return result
-        except Exception as e:
-            self.logger.log(f"Planning error: {str(e)}", "error")
-            raise
+        """
+        Planning phase with logging.
+        
+        Args:
+            goal: Analysis goal
+        
+        Returns:
+            Planning result from parent class
+        
+        TODO:
+        - Call parent class _run_planning_phase
+        - Handle exceptions and log errors
+        - Return result
+        """
+        raise NotImplementedError("Students need to implement _run_planning_phase_logged method")
     
     async def _run_investigation_phase_logged(self, plan):
-        """Investigation phase with detailed logging."""
-        try:
-            investigation_results, profiling_results = await super()._run_investigation_phase(plan)
-            return investigation_results, profiling_results
-        except Exception as e:
-            self.logger.log(f"Investigation error: {str(e)}", "error")
-            raise
+        """
+        Investigation phase with detailed logging.
+        
+        Args:
+            plan: Execution plan from planning phase
+        
+        Returns:
+            Tuple of (investigation_results, profiling_results)
+        
+        TODO:
+        - Call parent class _run_investigation_phase
+        - Handle exceptions and log errors
+        - Return results tuple
+        """
+        raise NotImplementedError("Students need to implement _run_investigation_phase_logged method")
     
     async def _run_analysis_phase_logged(self, goal, plan, investigation_results, profiling_results):
-        """Analysis phase with logging."""
-        try:
-            result = await super()._run_analysis_phase(goal, plan, investigation_results, profiling_results)
-            return result
-        except Exception as e:
-            self.logger.log(f"Analysis error: {str(e)}", "error")
-            raise
+        """
+        Analysis phase with logging.
+        
+        Args:
+            goal: Analysis goal
+            plan: Execution plan
+            investigation_results: Results from investigation
+            profiling_results: Results from profiling
+        
+        Returns:
+            Analysis result from parent class
+        
+        TODO:
+        - Call parent class _run_analysis_phase
+        - Handle exceptions and log errors
+        - Return result
+        """
+        raise NotImplementedError("Students need to implement _run_analysis_phase_logged method")
     
     async def _run_reporting_phase_logged(self, goal, plan, investigation_results, profiling_results, analysis):
-        """Reporting phase with logging."""
-        try:
-            result = await super()._run_reporting_phase(goal, plan, investigation_results, profiling_results, analysis)
-            return result
-        except Exception as e:
-            self.logger.log(f"Reporting error: {str(e)}", "error")
-            raise
+        """
+        Reporting phase with logging.
+        
+        Args:
+            goal: Analysis goal
+            plan: Execution plan
+            investigation_results: Results from investigation
+            profiling_results: Results from profiling
+            analysis: Analysis results
+        
+        Returns:
+            Report result from parent class
+        
+        TODO:
+        - Call parent class _run_reporting_phase
+        - Handle exceptions and log errors
+        - Return result
+        """
+        raise NotImplementedError("Students need to implement _run_reporting_phase_logged method")
 
 
 def render_phase_card(phase_name: str, status: str, details: Dict[str, Any]):
-    """Render a phase status card."""
-    status_icons = {
-        "pending": "⏳",
-        "running": "🔄",
-        "complete": "✅",
-        "error": "❌"
-    }
+    """
+    Render a phase status card.
     
-    status_colors = {
-        "pending": "",
-        "running": "phase-running",
-        "complete": "phase-complete",
-        "error": "phase-error"
-    }
+    Args:
+        phase_name: Name of the phase
+        status: Current status (pending, running, complete, error)
+        details: Dict with phase-specific details to display
     
-    icon = status_icons.get(status, "⏳")
-    color_class = status_colors.get(status, "")
-    
-    with st.container():
-        st.markdown(f'<div class="phase-card {color_class}">', unsafe_allow_html=True)
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            st.markdown(f"### {icon} {phase_name}")
-        
-        with col2:
-            st.markdown(f"**Status:** {status.upper()}")
-        
-        if details and status in ["complete", "running"]:
-            st.markdown("---")
-            cols = st.columns(len(details))
-            for idx, (key, value) in enumerate(details.items()):
-                with cols[idx]:
-                    st.metric(label=key.replace("_", " ").title(), value=value)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+    TODO:
+    - Define status icons (pending: ⏳, running: 🔄, complete: ✅, error: ❌)
+    - Define CSS classes for each status
+    - Create card container with appropriate styling
+    - Display phase name with icon
+    - Display status
+    - If details exist and status is complete/running, show metrics
+    """
+    raise NotImplementedError("Students need to implement render_phase_card function")
 
 
 def render_logs(logs):
-    """Render logs in a simple, user-friendly format."""
-    st.markdown("### 📝 Progress")
+    """
+    Render logs in a simple, user-friendly format.
     
-    # Filter to show only UI-relevant logs
-    ui_logs = [log for log in logs if log.get("show_in_ui", True)]
+    Args:
+        logs: List of log entries
     
-    if not ui_logs:
-        st.info("Waiting to start analysis...")
-        return
-    
-    log_container = st.container()
-    with log_container:
-        for log in ui_logs[-10:]:  # Show last 10 logs only
-            level_icons = {
-                "info": "🔵",
-                "success": "✅",
-                "error": "❌",
-                "warning": "⚠️"
-            }
-            icon = level_icons.get(log["level"], "🔵")
-            
-            # Simple format without timestamp for cleaner look
-            if log["level"] == "success":
-                st.success(f"{icon} {log['message']}")
-            elif log["level"] == "error":
-                st.error(f"{icon} {log['message']}")
-            elif log["level"] == "warning":
-                st.warning(f"{icon} {log['message']}")
-            else:
-                st.info(f"{icon} {log['message']}")
+    TODO:
+    - Display "Progress" header
+    - Filter logs to show only UI-relevant ones (show_in_ui=True)
+    - Show "Waiting to start analysis..." if no logs
+    - Display last 10 logs with appropriate icons and styling:
+      - info: 🔵 with st.info()
+      - success: ✅ with st.success()
+      - error: ❌ with st.error()
+      - warning: ⚠️ with st.warning()
+    """
+    raise NotImplementedError("Students need to implement render_logs function")
 
 
 async def run_workflow_async(goal: str, logger: WorkflowLogger):
-    """Run the workflow asynchronously."""
-    orchestrator = StreamlitOrchestrator(
-        logger=logger,
-        reports_dir="ge_reports",
-        max_rounds=20,
-        enable_console_output=False  # Disable console output for Streamlit
-    )
+    """
+    Run the workflow asynchronously.
     
-    results = await orchestrator.run_analysis(goal)
-    return results
+    Args:
+        goal: Analysis goal
+        logger: WorkflowLogger instance
+    
+    Returns:
+        Analysis results dictionary
+    
+    TODO:
+    - Create StreamlitOrchestrator with logger
+    - Set reports_dir="ge_reports"
+    - Set max_rounds=20
+    - Set enable_console_output=False
+    - Call run_analysis with goal
+    - Return results
+    """
+    raise NotImplementedError("Students need to implement run_workflow_async function")
 
 
 def main():
-    """Main Streamlit app."""
+    """
+    Main Streamlit app.
     
-    # Header
-    st.markdown('<p class="main-header">🛡️ DataSentinel</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-header">Multi-Agent Data Quality Analysis Platform</p>', unsafe_allow_html=True)
-    
-    # Sidebar
-    with st.sidebar:
-        st.markdown("## ℹ️ About")
-        st.markdown("""
-        DataSentinel uses a multi-agent system to perform comprehensive data quality analysis:
-        
-        **Phase 1: Planning**  
-        Creates an execution plan with query and profiling tasks
-        
-        **Phase 2: Investigation**  
-        Executes queries and generates statistical profiles
-        
-        **Phase 3: Analysis**  
-        Synthesizes findings and identifies issues
-        
-        **Phase 4: Reporting**  
-        Generates a professional HTML report
-        """)
-        
-    # Initialize session state
-    if "workflow_running" not in st.session_state:
-        st.session_state.workflow_running = False
-    if "logger" not in st.session_state:
-        st.session_state.logger = None
-    if "results" not in st.session_state:
-        st.session_state.results = None
-    
-    # Main content area
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("### 🎯 Data Quality Goal")
-        goal = st.text_area(
-            "Enter your data quality analysis goal:",
-            height=100,
-            placeholder="Example: Analyze missing values in the RIDEBOOKING table and assess data quality",
-            key="goal_input"
-        )
-    
-    with col2:
-        st.markdown("### 📊 Quick Stats")
-        reports_dir = Path("ge_reports")
-        if reports_dir.exists():
-            html_reports = list(reports_dir.glob("*.html"))
-            json_reports = list(reports_dir.glob("*.json"))
-            st.metric("HTML Reports", len(html_reports))
-            st.metric("JSON Reports", len(json_reports))
-        else:
-            st.metric("HTML Reports", 0)
-            st.metric("JSON Reports", 0)
-    
-    # Run button
-    st.markdown("---")
-    
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
-    
-    with col_btn1:
-        run_button = st.button("🚀 Run Analysis", disabled=st.session_state.workflow_running or not goal, use_container_width=True)
-    
-    with col_btn2:
-        if st.session_state.results and st.session_state.results.get("report"):
-            # Find the latest HTML report
-            reports_dir = Path("ge_reports")
-            html_reports = sorted(reports_dir.glob("data_quality_report_*.html"), key=lambda x: x.stat().st_mtime, reverse=True)
-            if html_reports:
-                report_path = html_reports[0]
-                with open(report_path, 'r', encoding='utf-8') as f:
-                    report_html = f.read()
-                st.download_button(
-                    "📥 Download Report",
-                    data=report_html,
-                    file_name=report_path.name,
-                    mime="text/html",
-                    use_container_width=True
-                )
-    
-    # Handle workflow execution
-    if run_button and goal:
-        st.session_state.workflow_running = True
-        st.session_state.logger = WorkflowLogger()
-        st.session_state.results = None
-        
-        # Display workflow status section immediately
-        st.markdown("## 📊 Workflow Progress")
-        
-        # Use st.status for expandable progress tracking
-        with st.status("Running data quality analysis...", expanded=True) as status:
-            st.write("🔄 Starting workflow...")
-            
-            # Run the workflow
-            try:
-                # Run async workflow in Streamlit
-                results = asyncio.run(run_workflow_async(goal, st.session_state.logger))
-                st.session_state.results = results
-                
-                # Show completion
-                status.update(label="✅ Analysis complete!", state="complete", expanded=True)
-            
-            except Exception as e:
-                status.update(label="❌ Analysis failed", state="error", expanded=True)
-                st.error(f"Error: {str(e)}")
-                import traceback
-                with st.expander("View Error Details"):
-                    st.code(traceback.format_exc())
-                st.session_state.workflow_running = False
-                st.stop()
-        
-        # Display phase cards after completion
-        st.markdown("---")
-        st.markdown("## 📊 Workflow Status")
-        
-        phase_status, phase_details = st.session_state.logger.get_phase_status()
-        for phase_name, status_val in phase_status.items():
-            render_phase_card(phase_name, status_val, phase_details.get(phase_name, {}))
-        
-        # Display logs after completion
-        st.markdown("---")
-        render_logs(st.session_state.logger.get_logs())
-        
-        # Show success message and summary
-        try:
-            if results.get("success"):
-                st.markdown("---")
-                st.success("✅ Workflow completed successfully!")
-                
-                # Display summary
-                if results.get("analysis"):
-                    analysis = results["analysis"]
-                    st.markdown("---")
-                    st.markdown("### 📋 Summary")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Issues Found", len(analysis.issues) if hasattr(analysis, 'issues') else 0)
-                    with col2:
-                        st.metric("Recommendations", len(analysis.recommendations) if hasattr(analysis, 'recommendations') else 0)
-                    with col3:
-                        st.metric("Follow-up Queries", len(analysis.required_followup_queries) if hasattr(analysis, 'required_followup_queries') else 0)
-                    
-                    if hasattr(analysis, 'summary'):
-                        st.markdown("#### Executive Summary")
-                        st.info(analysis.summary)
-                
-                # Show report location
-                if results.get("report"):
-                    reports_dir = Path("ge_reports")
-                    html_reports = sorted(reports_dir.glob("data_quality_report_*.html"), key=lambda x: x.stat().st_mtime, reverse=True)
-                    if html_reports:
-                        st.markdown("---")
-                        st.markdown("### 📄 Generated Reports")
-                        st.success(f"Report saved to: `{html_reports[0]}`")
-            else:
-                st.error(f"❌ Workflow failed: {results.get('error', 'Unknown error')}")
-                if results.get('traceback'):
-                    with st.expander("View Error Details"):
-                        st.code(results['traceback'])
-        
-        except Exception as e:
-            st.error(f"❌ Unexpected error: {str(e)}")
-            import traceback
-            with st.expander("View Error Details"):
-                st.code(traceback.format_exc())
-        
-        finally:
-            st.session_state.workflow_running = False
-    
-    # Display existing results if available
-    elif st.session_state.logger:
-        phase_status, phase_details = st.session_state.logger.get_phase_status()
-        
-        st.markdown("## 📊 Workflow Status")
-        for phase_name, status in phase_status.items():
-            render_phase_card(phase_name, status, phase_details.get(phase_name, {}))
-        
-        st.markdown("---")
-        render_logs(st.session_state.logger.get_logs())
-    
-    # Footer
-    st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; color: #666; padding: 2rem 0;">
-        <p>DataSentinel v2.1 | Powered by AutoGen & ydata-profiling</p>
-    </div>
-    """, unsafe_allow_html=True)
+    TODO:
+    - Display header and subtitle
+    - Create sidebar with information about phases
+    - Initialize session state variables (workflow_running, logger, results)
+    - Create goal input area
+    - Display quick stats (count of existing reports)
+    - Create Run Analysis button
+    - Handle button click:
+      - Set workflow_running to True
+      - Create new WorkflowLogger
+      - Run workflow with asyncio.run()
+      - Display phase cards and logs
+      - Show success/error messages
+      - Handle report download
+    - Display footer
+    """
+    raise NotImplementedError("Students need to implement main function")
 
 
 if __name__ == "__main__":

@@ -68,22 +68,19 @@ class SnowflakeDataProfilingTool:
         Args:
             reports_dir (str): Directory path for storing generated reports
         """
-        load_dotenv()
+        # TODO: Student Implementation
+        # 1. Load environment variables using load_dotenv()
+        # 2. Initialize the Snowflake query engine (self.query_engine)
+        # 3. Set up logging:
+        #    - Get LOG_LEVEL from environment (default to 'ERROR')
+        #    - Configure logging.basicConfig with appropriate level
+        #    - Create a logger instance (self.logger)
+        # 4. Create reports directory:
+        #    - Convert reports_dir to Path object (self.reports_dir)
+        #    - Create directory with parents=True and exist_ok=True
+        # 5. Log initialization success message
         
-        # Initialize Snowflake query engine
-        self.query_engine = SnowflakeQueryEngine()
-        
-        # Set up logging
-        log_level = os.environ.get('LOG_LEVEL', 'ERROR').upper()
-        numeric_level = getattr(logging, log_level, logging.ERROR)
-        logging.basicConfig(level=numeric_level)
-        self.logger = logging.getLogger(__name__)
-        
-        # Create reports directory
-        self.reports_dir = Path(reports_dir)
-        self.reports_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.logger.info(f"SnowflakeDataProfilingTool initialized. Reports will be saved to: {self.reports_dir}")
+        raise NotImplementedError("Students need to implement the __init__ method")
     
     def profile_data(
         self,
@@ -112,88 +109,55 @@ class SnowflakeDataProfilingTool:
         Returns:
             Dict[str, Any]: Profiling results including metrics and report paths
         """
-        try:
-            self.logger.info(f"Starting data profiling for query: {query}")
-            if goal:
-                self.logger.info(f"Profiling goal: {goal}")
-            
-            # Execute query to get data
-            query_result = self.query_engine.execute_query(query, goal, "dataframe")
-            
-            if not query_result['success']:
-                return {
-                    "success": False,
-                    "error": f"Query execution failed: {query_result.get('error', 'Unknown error')}",
-                    "query": query
-                }
-            
-            # Get dataframe from query result
-            df = query_result['data_frame']
-            
-            if df.empty:
-                return {
-                    "success": False,
-                    "error": "Query returned no data",
-                    "query": query
-                }
-            
-            # Profile data using ydata-profiling
-            self.logger.info(f"Profiling {len(df)} rows with {len(df.columns)} columns using ydata-profiling")
-            
-            # Create profile with ydata-profiling
-            profile = ProfileReport(
-                df,
-                title=f"Data Profile: {table_name}",
-                minimal=minimal_mode,
-                explorative=not minimal_mode
-            )
-            
-            # Generate reports
-            report_paths = {}
-            
-            if generate_html:
-                html_path = self._generate_html_report(profile, table_name, query, goal)
-                report_paths['html'] = str(html_path)
-            
-            if generate_json:
-                json_path = self._generate_json_report(profile, table_name, query, goal)
-                report_paths['json'] = str(json_path)
-            
-            # Extract basic summary metrics from the description
-            description = profile.get_description()
-            table_stats = description.table if hasattr(description, 'table') else {}
-            
-            return {
-                "success": True,
-                "query": query,
-                "goal": goal,
-                "table_name": table_name,
-                "row_count": len(df),
-                "column_count": len(df.columns),
-                "columns": list(df.columns),
-                "summary": {
-                    "n_variables": table_stats.get("n_var", len(df.columns)) if isinstance(table_stats, dict) else len(df.columns),
-                    "n_observations": table_stats.get("n", len(df)) if isinstance(table_stats, dict) else len(df),
-                    "missing_cells": table_stats.get("n_cells_missing", 0) if isinstance(table_stats, dict) else 0,
-                    "missing_cells_pct": table_stats.get("p_cells_missing", 0) if isinstance(table_stats, dict) else 0,
-                    "duplicate_rows": table_stats.get("n_duplicates", 0) if isinstance(table_stats, dict) else 0,
-                    "duplicate_rows_pct": table_stats.get("p_duplicates", 0) if isinstance(table_stats, dict) else 0,
-                },
-                "report_paths": report_paths,
-                "timestamp": datetime.now().isoformat()
-            }
-            
-        except Exception as e:
-            error_msg = str(e)
-            self.logger.error(f"Data profiling failed: {error_msg}")
-            
-            return {
-                "success": False,
-                "error": error_msg,
-                "query": query,
-                "goal": goal,
-                "table_name": table_name
-            }
+        # TODO: Student Implementation
+        # 1. Log the start of profiling:
+        #    - Log info message about starting profiling with the query
+        #    - If goal is provided, log the profiling goal
+        
+        # 2. Execute the query using query_engine:
+        #    - Call self.query_engine.execute_query(query, goal, "dataframe")
+        #    - Check if result['success'] is False, return error dict
+        
+        # 3. Validate the dataframe:
+        #    - Extract df from query_result['data_frame']
+        #    - Check if df is empty, return error dict if so
+        
+        # 4. Create ProfileReport:
+        #    - Log profiling info (rows and columns count)
+        #    - Create ProfileReport with:
+        #      * df as data
+        #      * title as f"Data Profile: {table_name}"
+        #      * minimal=minimal_mode
+        #      * explorative=not minimal_mode
+        
+        # 5. Generate reports based on flags:
+        #    - Initialize empty report_paths dict
+        #    - If generate_html is True:
+        #      * Call self._generate_html_report()
+        #      * Add path to report_paths['html']
+        #    - If generate_json is True:
+        #      * Call self._generate_json_report()
+        #      * Add path to report_paths['json']
+        
+        # 6. Extract summary metrics:
+        #    - Call profile.get_description()
+        #    - Extract table stats (check hasattr for 'table')
+        #    - Build summary dict with n_variables, n_observations, etc.
+        
+        # 7. Return success dictionary with:
+        #    - success: True
+        #    - query, goal, table_name
+        #    - row_count, column_count, columns list
+        #    - summary statistics
+        #    - report_paths
+        #    - timestamp (datetime.now().isoformat())
+        
+        # 8. Handle exceptions:
+        #    - Catch any Exception
+        #    - Log error
+        #    - Return error dictionary
+        
+        raise NotImplementedError("Students need to implement the profile_data method")
     
     def _generate_html_report(
         self,
@@ -214,20 +178,30 @@ class SnowflakeDataProfilingTool:
         Returns:
             Path: Path to generated HTML report
         """
-        try:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            html_filename = f"{table_name}_profile_{timestamp}.html"
-            html_path = self.reports_dir / html_filename
-            
-            # Generate HTML report using ydata-profiling
-            profile.to_file(html_path)
-            
-            self.logger.info(f"HTML report generated: {html_path}")
-            return html_path
-            
-        except Exception as e:
-            self.logger.error(f"Failed to generate HTML report: {str(e)}")
-            raise
+        # TODO: Student Implementation
+        # 1. Generate timestamp string:
+        #    - Use datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # 2. Create HTML filename:
+        #    - Format as f"{table_name}_profile_{timestamp}.html"
+        
+        # 3. Create full path:
+        #    - Combine self.reports_dir with html_filename using Path
+        
+        # 4. Generate HTML report:
+        #    - Call profile.to_file(html_path)
+        
+        # 5. Log success:
+        #    - Log info message with the generated file path
+        
+        # 6. Return the html_path
+        
+        # 7. Handle exceptions:
+        #    - Catch any Exception
+        #    - Log error with self.logger.error()
+        #    - Re-raise the exception
+        
+        raise NotImplementedError("Students need to implement the _generate_html_report method")
     
     def _generate_json_report(
         self,
@@ -248,20 +222,30 @@ class SnowflakeDataProfilingTool:
         Returns:
             Path: Path to generated JSON report
         """
-        try:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            json_filename = f"{table_name}_profile_{timestamp}.json"
-            json_path = self.reports_dir / json_filename
-            
-            # Use the built-in JSON export from ydata-profiling
-            profile.to_file(json_path)
-            
-            self.logger.info(f"JSON report generated: {json_path}")
-            return json_path
-            
-        except Exception as e:
-            self.logger.error(f"Failed to generate JSON report: {str(e)}")
-            raise
+        # TODO: Student Implementation
+        # 1. Generate timestamp string:
+        #    - Use datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # 2. Create JSON filename:
+        #    - Format as f"{table_name}_profile_{timestamp}.json"
+        
+        # 3. Create full path:
+        #    - Combine self.reports_dir with json_filename using Path
+        
+        # 4. Generate JSON report:
+        #    - Call profile.to_file(json_path)
+        
+        # 5. Log success:
+        #    - Log info message with the generated file path
+        
+        # 6. Return the json_path
+        
+        # 7. Handle exceptions:
+        #    - Catch any Exception
+        #    - Log error with self.logger.error()
+        #    - Re-raise the exception
+        
+        raise NotImplementedError("Students need to implement the _generate_json_report method")
     
     def test_connection(self) -> Dict[str, Any]:
         """
@@ -270,4 +254,8 @@ class SnowflakeDataProfilingTool:
         Returns:
             Dict[str, Any]: Connection test results
         """
-        return self.query_engine.test_connection()
+        # TODO: Student Implementation
+        # 1. Call the query engine's test_connection method:
+        #    - Return self.query_engine.test_connection()
+        
+        raise NotImplementedError("Students need to implement the test_connection method")

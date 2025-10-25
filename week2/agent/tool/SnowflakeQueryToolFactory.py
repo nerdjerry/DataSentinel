@@ -15,14 +15,13 @@ class SnowflakeQueryToolFactory:
         Returns:
             FunctionTool: AutoGen tool for executing Snowflake queries
         """
-        try:
-            return FunctionTool(
-                self.snowflake_instance.execute_query,
-                description="Execute SQL queries on Snowflake database. Returns structured data with success status, results, and metadata.",
-                strict=True
-            )
-        except ImportError:
-            raise ImportError("autogen-core is required. Install with: pip install autogen-core")
+        # TODO: Implement this method
+        # 1. Create and return a FunctionTool instance
+        # 2. Use self.snowflake_instance.execute_query as the function
+        # 3. Add appropriate description for the tool
+        # 4. Set strict=True for type checking
+        # 5. Handle ImportError if autogen-core is not installed
+        pass
 
     def create_table_info_tool(self):
         """
@@ -31,14 +30,13 @@ class SnowflakeQueryToolFactory:
         Returns:
             FunctionTool: AutoGen tool for getting table information
         """
-        try:
-            return FunctionTool(
-                self.snowflake_instance.get_table_info,
-                description="Get detailed information about a Snowflake table including column names, data types, and metadata.",
-                strict=True
-            )
-        except ImportError:
-            raise ImportError("autogen-core is required. Install with: pip install autogen-core")
+        # TODO: Implement this method
+        # 1. Create and return a FunctionTool instance
+        # 2. Use self.snowflake_instance.get_table_info as the function
+        # 3. Add description about getting table metadata
+        # 4. Set strict=True for type checking
+        # 5. Handle ImportError if autogen-core is not installed
+        pass
 
     def create_list_tables_tool(self):
         """
@@ -47,11 +45,10 @@ class SnowflakeQueryToolFactory:
         Returns:
             FunctionTool: AutoGen tool for listing tables
         """
-        try:
-            return FunctionTool(
-                self.snowflake_instance.list_tables,
-                description="List all tables in a Snowflake schema/database with metadata including row counts and table types.",
-                strict=True
-            )
-        except ImportError:
-            raise ImportError("autogen-core is required. Install with: pip install autogen-core")
+        # TODO: Implement this method
+        # 1. Create and return a FunctionTool instance
+        # 2. Use self.snowflake_instance.list_tables as the function
+        # 3. Add description about listing tables in schema/database
+        # 4. Set strict=True for type checking
+        # 5. Handle ImportError if autogen-core is not installed
+        pass

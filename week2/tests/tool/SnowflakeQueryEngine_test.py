@@ -5,45 +5,36 @@ from agent.tool.SnowflakeQueryEngine import SnowflakeQueryEngine
 if __name__ == "__main__":
     """
     Example usage of the SnowflakeQueryTool
+    
+    TODO: Students should implement the following:
+    1. Create a SnowflakeQueryEngine instance
+    2. Test the connection to Snowflake
+    3. Execute a sample query to get current timestamp and user
+    4. List available tables in the database
+    5. Handle any exceptions and provide helpful error messages
     """
-    try:
-        # Create tool instance
-        tool = SnowflakeQueryEngine()
-
-        # Test connection
-        print("Testing Snowflake connection...")
-        connection_result = tool.test_connection()
-        print(f"Connection test: {connection_result}")
-        
-        if connection_result["success"]:
-            # Example query
-            print("\nExecuting sample query...")
-            query_result = tool.execute_query(
-                "SELECT CURRENT_TIMESTAMP() as current_time, CURRENT_USER() as current_user",
-                "Get current timestamp and user"
-            )
-            print(f"Query result: {query_result}")
-            
-            # List tables example
-            print("\nListing tables...")
-            tables_result = tool.list_tables()
-            print(f"Tables: {tables_result}")
-            
-    except Exception as e:
-        print(f"Error: {e}")
-        print("\nMake sure you have set the required environment variables:")
-        print("- SNOWFLAKE_ACCOUNT (required)")
-        print("- SNOWFLAKE_USER (required)")
-        print("- SNOWFLAKE_TOKEN (PAT token - required)")
-        print("\nOptional parameters:")
-        print("- SNOWFLAKE_WAREHOUSE")
-        print("- SNOWFLAKE_DATABASE")
-        print("- SNOWFLAKE_SCHEMA")
-        print("- SNOWFLAKE_ROLE")
-        print("\nThis tool uses PAT token authentication only.")
-        print("To get a PAT token:")
-        print("1. Log into Snowflake web interface")
-        print("2. Go to your user profile (top right)")
-        print("3. Navigate to 'Personal Access Tokens'")
-        print("4. Generate a new token")
-        print("\nCreate a .env file based on .env.template for easy configuration.")
+    
+    # TODO: Implement the following steps
+    
+    # Step 1: Create tool instance
+    # Hint: tool = SnowflakeQueryEngine()
+    
+    # Step 2: Test connection
+    # Hint: Use tool.test_connection() and print the result
+    
+    # Step 3: If connection is successful, execute a sample query
+    # Hint: Use tool.execute_query() with a SELECT statement
+    # Example query: "SELECT CURRENT_TIMESTAMP() as current_time, CURRENT_USER() as current_user"
+    
+    # Step 4: List tables in the database
+    # Hint: Use tool.list_tables() and print the result
+    
+    # Step 5: Handle exceptions
+    # Hint: Wrap your code in try-except block
+    # Provide helpful error messages about required environment variables:
+    # - SNOWFLAKE_ACCOUNT (required)
+    # - SNOWFLAKE_USER (required)
+    # - SNOWFLAKE_TOKEN (PAT token - required)
+    # Optional: SNOWFLAKE_WAREHOUSE, SNOWFLAKE_DATABASE, SNOWFLAKE_SCHEMA, SNOWFLAKE_ROLE
+    
+    pass  # Remove this line when implementing

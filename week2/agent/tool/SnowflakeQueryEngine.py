@@ -53,17 +53,23 @@ class SnowflakeQueryEngine:
             ValueError: If required environment variables are missing
             ImportError: If snowflake-connector-python is not installed
         """
-        # Load environment variables from a .env file if present
-        load_dotenv()
-        # Load connection parameters from environment variables
-        self.connection_params = self._load_connection_params()
-        self._connection = None
+        # TODO: Student Implementation
+        # 1. Load environment variables from a .env file if present
+        #    Hint: Use load_dotenv()
         
-        # Set up logging
-        log_level = os.environ.get('LOG_LEVEL', 'ERROR').upper()
-        numeric_level = getattr(logging, log_level, logging.ERROR)
-        logging.basicConfig(level=numeric_level)
-        self.logger = logging.getLogger(__name__)
+        # 2. Load connection parameters from environment variables
+        #    Hint: Use self._load_connection_params() and store in self.connection_params
+        
+        # 3. Initialize the connection variable
+        #    Hint: Set self._connection to None initially
+        
+        # 4. Set up logging configuration
+        #    - Get log level from environment variable 'LOG_LEVEL' (default to 'ERROR')
+        #    - Convert to uppercase
+        #    - Set up basic logging configuration
+        #    - Create a logger instance for this class
+        
+        raise NotImplementedError("Student must implement the __init__ method")
         
     def _load_connection_params(self) -> Dict[str, Any]:
         """
@@ -75,42 +81,29 @@ class SnowflakeQueryEngine:
         Raises:
             ValueError: If required environment variables are missing
         """
-        required_params = {
-            'account': 'SNOWFLAKE_ACCOUNT',
-            'user': 'SNOWFLAKE_USER',
-            'password': 'SNOWFLAKE_PASSWORD'  # PAT token is now required
-        }
-
-        optional_params = {
-            'warehouse': 'SNOWFLAKE_WAREHOUSE',
-            'database': 'SNOWFLAKE_DATABASE',
-            'schema': 'SNOWFLAKE_SCHEMA',
-            'role': 'SNOWFLAKE_ROLE'
-        }
+        # TODO: Student Implementation
+        # 1. Define required parameters dictionary with keys: 'account', 'user', 'password'
+        #    Map to environment variables: 'SNOWFLAKE_ACCOUNT', 'SNOWFLAKE_USER', 'SNOWFLAKE_PASSWORD'
         
-        params = {}
+        # 2. Define optional parameters dictionary with keys: 'warehouse', 'database', 'schema', 'role'
+        #    Map to corresponding SNOWFLAKE_* environment variables
         
-        # Check required parameters
-        for param_name, env_var in required_params.items():
-            value = os.getenv(env_var)
-            if not value:
-                raise ValueError(f"Required environment variable {env_var} is not set")
-            params[param_name] = value
+        # 3. Create empty params dictionary
         
-        # Add optional parameters if available
-        for param_name, env_var in optional_params.items():
-            value = os.getenv(env_var)
-            if value:
-                params[param_name] = value
+        # 4. Check and add required parameters
+        #    - Use os.getenv() to get values
+        #    - Raise ValueError if any required parameter is missing
         
-        # Add additional connection settings
-        params.update({
-            'client_session_keep_alive': True,
-            'autocommit': True,
-            'application': 'AutoGen_SnowflakeQueryTool'
-        })
+        # 5. Add optional parameters if available
         
-        return params
+        # 6. Add additional connection settings:
+        #    - client_session_keep_alive: True
+        #    - autocommit: True
+        #    - application: 'AutoGen_SnowflakeQueryTool'
+        
+        # 7. Return the params dictionary
+        
+        raise NotImplementedError("Student must implement the _load_connection_params method")
     
     def _create_connection(self):
         """
@@ -122,14 +115,22 @@ class SnowflakeQueryEngine:
         Raises:
             Exception: If connection fails
         """
-        try:
-            self.logger.info("Creating Snowflake connection...")
-            connection = snowflake.connector.connect(**self.connection_params)
-            self.logger.info("Successfully connected to Snowflake")
-            return connection
-        except Exception as e:
-            self.logger.error(f"Failed to connect to Snowflake: {str(e)}")
-            raise
+        # TODO: Student Implementation
+        # 1. Log info message about creating connection
+        #    Hint: Use self.logger.info()
+        
+        # 2. Create connection using snowflake.connector.connect()
+        #    Hint: Pass self.connection_params using **kwargs syntax
+        
+        # 3. Log success message
+        
+        # 4. Return the connection object
+        
+        # 5. Handle exceptions:
+        #    - Log error message with exception details
+        #    - Re-raise the exception
+        
+        raise NotImplementedError("Student must implement the _create_connection method")
     
     @contextmanager
     def _get_connection(self):
@@ -139,20 +140,23 @@ class SnowflakeQueryEngine:
         Yields:
             snowflake.connector.connection: Database connection
         """
-        connection = None
-        try:
-            connection = self._create_connection()
-            yield connection
-        except Exception as e:
-            self.logger.error(f"Database connection error: {str(e)}")
-            raise
-        finally:
-            if connection:
-                try:
-                    connection.close()
-                    self.logger.info("Database connection closed")
-                except Exception as e:
-                    self.logger.warning(f"Error closing connection: {str(e)}")
+        # TODO: Student Implementation
+        # 1. Initialize connection variable to None
+        
+        # 2. In try block:
+        #    - Create connection using self._create_connection()
+        #    - Yield the connection
+        
+        # 3. In except block:
+        #    - Log error message
+        #    - Re-raise exception
+        
+        # 4. In finally block:
+        #    - If connection exists, try to close it
+        #    - Log appropriate messages
+        #    - Handle any closing exceptions
+        
+        raise NotImplementedError("Student must implement the _get_connection method")
     
     def test_connection(self) -> Dict[str, Any]:
         """
@@ -161,29 +165,26 @@ class SnowflakeQueryEngine:
         Returns:
             Dict[str, Any]: Connection test results
         """
-        try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT CURRENT_VERSION() as version, CURRENT_WAREHOUSE() as warehouse, CURRENT_DATABASE() as database, CURRENT_SCHEMA() as schema, CURRENT_ROLE() as role")
-                result = cursor.fetchone()
-                
-                return {
-                    "success": True,
-                    "message": "Connection successful",
-                    "details": {
-                        "version": result[0],
-                        "warehouse": result[1], 
-                        "database": result[2],
-                        "schema": result[3],
-                        "role": result[4]
-                    }
-                }
-        except Exception as e:
-            return {
-                "success": False,
-                "message": f"Connection failed: {str(e)}",
-                "details": None
-            }
+        # TODO: Student Implementation
+        # 1. Use self._get_connection() context manager
+        
+        # 2. Create cursor and execute:
+        #    "SELECT CURRENT_VERSION() as version, CURRENT_WAREHOUSE() as warehouse, 
+        #     CURRENT_DATABASE() as database, CURRENT_SCHEMA() as schema, CURRENT_ROLE() as role"
+        
+        # 3. Fetch the result
+        
+        # 4. Return success dictionary with:
+        #    - success: True
+        #    - message: "Connection successful"
+        #    - details: dictionary with version, warehouse, database, schema, role
+        
+        # 5. Handle exceptions and return failure dictionary with:
+        #    - success: False
+        #    - message: error details
+        #    - details: None
+        
+        raise NotImplementedError("Student must implement the test_connection method")
     
     def execute_query(
         self, 
@@ -202,62 +203,30 @@ class SnowflakeQueryEngine:
         Returns:
             Dict[str, Any]: Query execution results with metadata
         """
-        try:
-            self.logger.info(f"Executing Snowflake query: {query}")
-            if goal:
-                self.logger.info(f"Query goal: {goal}")
-            
-            with self._get_connection() as conn:
-                # Use DictCursor for easier data handling
-                cursor = conn.cursor(DictCursor)
-                cursor.execute(query)
-                
-                # Fetch results
-                results = cursor.fetchall()
-                
-                # Convert to pandas DataFrame for easier manipulation
-                if results:
-                    df = pd.DataFrame(results)
-                else:
-                    df = pd.DataFrame()
-                
-                # Format return data based on requested format
-                if return_format.lower() == "dataframe":
-                    data = df
-                elif return_format.lower() == "list":
-                    data = results
-                else:  # default to dict
-                    data = df.to_dict('records') if not df.empty else []
-                
-                # Get query metadata
-                row_count = len(results) if results else 0
-                columns = list(df.columns) if not df.empty else []
-                
-                return {
-                    "success": True,
-                    "data": data,
-                    "query": query,
-                    "goal": goal,
-                    "row_count": row_count,
-                    "columns": columns,
-                    "data_frame": df,
-                    "return_format": return_format
-                }
-                
-        except Exception as e:
-            error_msg = str(e)
-            self.logger.error(f"Query execution failed: {error_msg}")
-            
-            return {
-                "success": False,
-                "error": error_msg,
-                "query": query,
-                "goal": goal,
-                "row_count": 0,
-                "columns": [],
-                "data": None,
-                "return_format": return_format
-            }
+        # TODO: Student Implementation
+        # 1. Log the query and goal (if provided)
+        
+        # 2. Use self._get_connection() context manager
+        
+        # 3. Create cursor with DictCursor
+        
+        # 4. Execute the query
+        
+        # 5. Fetch all results
+        
+        # 6. Convert results to pandas DataFrame
+        
+        # 7. Format data based on return_format:
+        #    - "dataframe": return the DataFrame
+        #    - "list": return the raw results
+        #    - default: convert to list of dictionaries
+        
+        # 8. Return success dictionary with:
+        #    - success, data, query, goal, row_count, columns, data_frame, return_format
+        
+        # 9. Handle exceptions and return error dictionary
+        
+        raise NotImplementedError("Student must implement the execute_query method")
     
     def get_table_info(self, table_name: str, schema: str, database: str) -> Dict[str, Any]:
         """
@@ -271,50 +240,22 @@ class SnowflakeQueryEngine:
         Returns:
             Dict[str, Any]: Table information including columns and data types
         """
-        try:
-            # Build the query to get table information
-            table_ref = table_name
-            if schema:
-                table_ref = f"{schema}.{table_name}"
-            if database:
-                table_ref = f"{database}.{table_ref}"
-            
-            # Query to get column information
-            info_query = f"""
-            SELECT 
-                COLUMN_NAME,
-                DATA_TYPE,
-                IS_NULLABLE,
-                COLUMN_DEFAULT,
-                ORDINAL_POSITION,
-                COMMENT
-            FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_NAME = '{table_name.upper()}'
-            {f"AND TABLE_SCHEMA = '{schema.upper()}'" if schema else ""}
-            {f"AND TABLE_CATALOG = '{database.upper()}'" if database else ""}
-            ORDER BY ORDINAL_POSITION
-            """
-            
-            result = self.execute_query(info_query, f"Get table information for {table_ref}")
-            
-            if result["success"]:
-                return {
-                    "success": True,
-                    "table_name": table_name,
-                    "schema": schema,
-                    "database": database,
-                    "columns": result["data"],
-                    "column_count": result["row_count"]
-                }
-            else:
-                return result
-                
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to get table info: {str(e)}",
-                "table_name": table_name
-            }
+        # TODO: Student Implementation
+        # 1. Build table reference string based on provided parameters
+        
+        # 2. Construct SQL query to get column information from INFORMATION_SCHEMA.COLUMNS:
+        #    - Select: COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_DEFAULT, ORDINAL_POSITION, COMMENT
+        #    - Filter by TABLE_NAME (and optionally TABLE_SCHEMA and TABLE_CATALOG)
+        #    - Order by ORDINAL_POSITION
+        
+        # 3. Execute query using self.execute_query()
+        
+        # 4. If successful, return dictionary with:
+        #    - success, table_name, schema, database, columns, column_count
+        
+        # 5. Handle errors appropriately
+        
+        raise NotImplementedError("Student must implement the get_table_info method")
 
     def list_tables(self, schema: str, database: str) -> Dict[str, Any]:
         """
@@ -327,46 +268,20 @@ class SnowflakeQueryEngine:
         Returns:
             Dict[str, Any]: List of tables with metadata
         """
-        try:
-            query = """
-            SELECT 
-                TABLE_CATALOG as DATABASE_NAME,
-                TABLE_SCHEMA as SCHEMA_NAME,
-                TABLE_NAME,
-                TABLE_TYPE,
-                ROW_COUNT,
-                BYTES,
-                COMMENT
-            FROM INFORMATION_SCHEMA.TABLES 
-            WHERE TABLE_TYPE = 'BASE TABLE'
-            """
-            
-            conditions = []
-            if schema:
-                conditions.append(f"TABLE_SCHEMA = '{schema.upper()}'")
-            if database:
-                conditions.append(f"TABLE_CATALOG = '{database.upper()}'")
-            
-            if conditions:
-                query += " AND " + " AND ".join(conditions)
-            
-            query += " ORDER BY TABLE_SCHEMA, TABLE_NAME"
-            
-            result = self.execute_query(query, f"List tables in {schema or 'current schema'}")
-            
-            if result["success"]:
-                return {
-                    "success": True,
-                    "tables": result["data"],
-                    "table_count": result["row_count"],
-                    "schema": schema,
-                    "database": database
-                }
-            else:
-                return result
-                
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to list tables: {str(e)}"
-            }
+        # TODO: Student Implementation
+        # 1. Construct base SQL query to select from INFORMATION_SCHEMA.TABLES:
+        #    - Select: TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, ROW_COUNT, BYTES, COMMENT
+        #    - Filter by TABLE_TYPE = 'BASE TABLE'
+        
+        # 2. Add optional WHERE conditions for schema and database if provided
+        
+        # 3. Add ORDER BY clause
+        
+        # 4. Execute query using self.execute_query()
+        
+        # 5. If successful, return dictionary with:
+        #    - success, tables, table_count, schema, database
+        
+        # 6. Handle errors appropriately
+        
+        raise NotImplementedError("Student must implement the list_tables method")

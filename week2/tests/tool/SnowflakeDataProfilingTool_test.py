@@ -18,62 +18,30 @@ def test_basic_profiling():
     print("Testing SnowflakeDataProfilingTool - Basic Profiling")
     print("=" * 80)
     
-    # Create tool instance
-    tool = SnowflakeDataProfilingTool(reports_dir="ge_reports")
+    # TODO: Create tool instance with reports directory
+    # Hint: Use SnowflakeDataProfilingTool(reports_dir="ge_reports")
     
-    # Test connection first
-    print("\n1. Testing connection...")
-    connection_result = tool.test_connection()
+    # TODO: Test connection first
+    # Hint: Use tool.test_connection() and check if result['success'] is True
     
-    if connection_result['success']:
-        print("✓ Connection successful")
-        print(f"  Database: {connection_result['details']['database']}")
-        print(f"  Schema: {connection_result['details']['schema']}")
-        print(f"  Warehouse: {connection_result['details']['warehouse']}")
-    else:
-        print(f"✗ Connection failed: {connection_result['message']}")
-        return
+    # TODO: Profile a sample query
+    # Hint: Use query = "SELECT * FROM RIDEBOOKING LIMIT 500"
+    # Call tool.profile_data() with appropriate parameters:
+    #   - query: the SQL query
+    #   - table_name: a descriptive name for the profiling results
+    #   - goal: describe what you're trying to analyze
+    #   - generate_html: True to create HTML report
+    #   - generate_json: True to create JSON report
     
-    # Profile a sample query
-    print("\n2. Profiling sample data...")
-    query = "SELECT * FROM RIDEBOOKING LIMIT 500"
+    # TODO: Check if profiling was successful and print results
+    # Hint: Check result['success'] and display:
+    #   - Row count
+    #   - Column count
+    #   - Column names
+    #   - Report paths
+    #   - Summary metrics (if available)
     
-    result = tool.profile_data(
-        query=query,
-        table_name="ridebooking_sample",
-        goal="Profile Uber ride booking data to understand data quality",
-        generate_html=True,
-        generate_json=True
-    )
-    
-    if result['success']:
-        print("✓ Profiling successful!")
-        print(f"\nResults:")
-        print(f"  Rows: {result['row_count']}")
-        print(f"  Columns: {result['column_count']}")
-        print(f"  Column Names: {', '.join(result['columns'])}")
-        
-        print(f"\n  Reports Generated:")
-        for report_type, path in result['report_paths'].items():
-            print(f"    {report_type.upper()}: {path}")
-        
-        # Display summary metrics from ydata-profiling
-        if 'summary' in result:
-            print(f"\n  Data Summary:")
-            summary = result['summary']
-            print(f"    Variables: {summary.get('n_variables', 'N/A')}")
-            print(f"    Observations: {summary.get('n_observations', 'N/A')}")
-            print(f"    Missing Cells: {summary.get('missing_cells', 0)} ({summary.get('missing_cells_pct', 0):.2f}%)")
-            print(f"    Duplicate Rows: {summary.get('duplicate_rows', 0)} ({summary.get('duplicate_rows_pct', 0):.2f}%)")
-        
-        print(f"\n  📊 Open the HTML report for comprehensive analysis including:")
-        print(f"     - Variable statistics and distributions")
-        print(f"     - Correlations and interactions")
-        print(f"     - Missing values analysis")
-        print(f"     - Duplicate rows detection")
-        print(f"     - Sample data preview")
-    else:
-        print(f"✗ Profiling failed: {result.get('error', 'Unknown error')}")
+    pass  # Remove this when implementing
 
 
 def test_custom_query_profiling():
@@ -82,42 +50,23 @@ def test_custom_query_profiling():
     print("Testing Custom Query Profiling")
     print("=" * 80)
     
-    tool = SnowflakeDataProfilingTool(reports_dir="ge_reports")
+    # TODO: Create tool instance
     
-    # Profile an aggregated query using actual column names from RIDEBOOKING table
-    # Columns: DATE, BOOKING_VALUE, RIDE_DISTANCE, etc.
-    # Using TRY_CAST to handle 'null' string values safely
-    query = """
-    SELECT 
-        DATE as booking_date,
-        COUNT(*) as total_bookings,
-        AVG(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as avg_booking_value,
-        SUM(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as total_revenue,
-        AVG(TRY_CAST(RIDE_DISTANCE AS DECIMAL(10,2))) as avg_distance,
-        COUNT(DISTINCT CUSTOMER_ID) as unique_customers,
-        COUNT(CASE WHEN BOOKING_VALUE IS NULL OR BOOKING_VALUE = 'null' THEN 1 END) as null_booking_values,
-        COUNT(CASE WHEN RIDE_DISTANCE IS NULL OR RIDE_DISTANCE = 'null' THEN 1 END) as null_distances
-    FROM RIDEBOOKING
-    WHERE DATE IS NOT NULL
-    GROUP BY DATE
-    ORDER BY DATE DESC
-    LIMIT 30
-    """
+    # TODO: Create an aggregated query to analyze daily statistics
+    # Hint: Use SQL aggregation functions like COUNT(), AVG(), SUM()
+    # Example columns in RIDEBOOKING table:
+    #   - DATE: booking date
+    #   - BOOKING_VALUE: transaction amount
+    #   - RIDE_DISTANCE: distance traveled
+    #   - CUSTOMER_ID: customer identifier
+    # Note: Use TRY_CAST() to handle 'null' string values safely
     
-    result = tool.profile_data(
-        query=query,
-        table_name="ridebooking_daily_stats",
-        goal="Analyze daily booking statistics and revenue trends",
-        generate_html=True,
-        generate_json=True
-    )
+    # TODO: Profile the aggregated query
+    # Hint: Call tool.profile_data() with your custom query
     
-    if result['success']:
-        print("✓ Custom query profiling successful!")
-        print(f"\n  Analyzed {result['row_count']} days of data")
-        print(f"  Reports: {', '.join(result['report_paths'].keys())}")
-    else:
-        print(f"✗ Profiling failed: {result.get('error', 'Unknown error')}")
+    # TODO: Display profiling results
+    
+    pass  # Remove this when implementing
 
 
 def main():

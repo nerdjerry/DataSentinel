@@ -6,21 +6,6 @@ from agent.model.ModelFactory import ModelFactory
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
-class DataProfilingTasksExecuted(BaseModel):
-    """Result of a single data profiling operation"""
-    task_purpose: str  # Why this profiling was performed
-    query_or_dataset: str  # The SQL query or dataset profiled
-    row_count: int  # Number of rows profiled
-    column_count: int  # Number of columns profiled
-    html_report_path: str  # Path to generated HTML report
-    json_report_path: str  # Path to generated JSON report
-
-class DataProfilingReport(BaseModel):
-    """Complete report from DataProfilingAgent after executing profiling tasks"""
-    plan_goal: str  # The original profiling goal
-    tasks_executed: List[DataProfilingTasksExecuted]  # All profiling operations performed
-    next_steps: List[str]  # Recommended follow-up actions
-
 class DataProfilingAgent:
     """
     A specialized agent for data profiling and quality assessment using ydata-profiling.
@@ -41,79 +26,48 @@ class DataProfilingAgent:
             description (str): Custom description/system prompt for the agent
             reports_dir (str): Directory for storing generated reports
         """
-        self.profiling_tool_factory = SnowflakeDataProfilingToolFactory(reports_dir=reports_dir)
-        self.model = ModelFactory.get_model()
-        self.tools = [
-            self.profiling_tool_factory.create_profile_tool()
-        ]
-        self.schema = self._get_schema()
-        self.agent = AssistantAgent(
-            name=name,
-            tools=self.tools,
-            model_client=self.model,
-            description="Data Profiling Agent for analyzing data quality and generating reports",
-            system_message=system_message or self._system_message(),
-            model_client_stream=False,  # Disable streaming for structured output
-            reflect_on_tool_use=False,  # Disabled to prevent multiple JSON outputs with structured output
-            output_content_type=DataProfilingReport
-        )
-    
-    def _system_message(self) -> str:
-        """Return the default agent description/system prompt."""
-        schema_info = json.dumps(self.schema, indent=2) if self.schema else "No schema available"
+        # TODO: Initialize the profiling tool factory
+        # Hint: Use SnowflakeDataProfilingToolFactory with the reports_dir parameter
+        self.profiling_tool_factory = None  # IMPLEMENT THIS
         
-        return f"""{{
-                "role": "You are the Data Profiling Agent. Given a profiling goal, determine the appropriate Snowflake SQL query and use the profiling tool to analyze data quality and structure.",
-
-                "database_schema": {schema_info},
-
-                "capabilities": {{
-                    "tools": ["profile_data"],
-                    "actions": [
-                        "Identify and construct Snowflake SQL for profiling",
-                        "Run profiling to generate HTML and JSON reports",
-                        "Analyze nulls, distributions, correlations, and duplicates",
-                        "Summarize key data quality insights"
-                    ]
-                }},
-
-                "output_format": {{
-                    "plan_goal": "Original profiling goal",
-                    "tasks_executed": [
-                    {{
-                        "task_purpose": "Purpose of profiling task",
-                        "query_or_dataset": "SQL query or dataset profiled",
-                        "row_count": 0,
-                        "column_count": 0,
-                        "html_report_path": "path/to/report.html",
-                        "json_report_path": "path/to/report.json"
-                    }}
-                    ],
-                    "next_steps": ["Recommended follow-up actions"]
-                }},
-
-                "constraints": [
-                    "Profile up to 100,000 rows per run",
-                    "Use valid Snowflake SQL and schema columns only",
-                    "Return output strictly in JSON format matching DataProfilingReport",
-                    "Do not output extra text or explanations"
-                ],
-
-                "termination_condition": "Execute profiling once, produce a complete DataProfilingReport, and terminate after returning results."
-        }}"""
-
+        # TODO: Get the model from ModelFactory
+        # Hint: Use ModelFactory.get_model()
+        self.model = None  # IMPLEMENT THIS
+        
+        # TODO: Create the tools list
+        # Hint: Use profiling_tool_factory.create_profile_tool()
+        self.tools = []  # IMPLEMENT THIS
+        
+        # TODO: Get the schema
+        # Hint: Call the _get_schema() method
+        self.schema = None  # IMPLEMENT THIS
+        
+        # TODO: Initialize the AssistantAgent with appropriate parameters
+        # Hint: Use the following parameters:
+        # - name: use the provided name parameter
+        # - tools: use self.tools
+        # - model_client: use self.model
+        # - description: "Data Profiling Agent for analyzing data quality and generating reports"
+        # - system_message: use system_message parameter or self._system_message()
+        # - model_client_stream: False (to disable streaming for structured output)
+        # - reflect_on_tool_use: False (to prevent multiple JSON outputs)
+        # - output_content_type: DataProfilingReport
+        self.agent = None  # IMPLEMENT THIS
+    
     def _get_schema(self):
         """Load table schema from metadata/schema.json"""
-        schema_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'metadata', 'schema.json')
-        try:
-            with open(schema_path, 'r') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            print(f"Warning: Schema file not found at {schema_path}")
-            return {}
-        except json.JSONDecodeError:
-            print(f"Warning: Invalid JSON in schema file {schema_path}")
-            return {}
+        # TODO: Implement schema loading
+        # Hint: 
+        # 1. Construct the path to metadata/schema.json using os.path.join
+        #    - Use os.path.dirname twice to go up two directories from the current file
+        #    - Then join with 'metadata' and 'schema.json'
+        # 2. Use a try-except block to handle potential errors:
+        #    - FileNotFoundError: if the schema file doesn't exist
+        #    - json.JSONDecodeError: if the JSON is invalid
+        # 3. Open the file and load the JSON content
+        # 4. Return the loaded schema dictionary, or an empty dict {} if there's an error
+        
+        return {}  # IMPLEMENT THIS
     
     def get_agent(self):
         """

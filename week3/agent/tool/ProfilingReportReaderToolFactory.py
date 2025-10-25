@@ -35,15 +35,11 @@ class ProfilingReportReaderToolFactory:
         Returns:
             FunctionTool: AutoGen tool for reading JSON profiling reports
         """
-        try:
-            return FunctionTool(
-                self.reader_instance.read_json_report,
-                description="""Read a JSON profiling report and return it as a string. 
-                Accepts a file path (absolute or relative to reports directory) and reads 
-                the JSON content, returning it as a formatted string that can be analyzed. 
-                Supports pretty printing for better readability. Returns the full JSON content 
-                along with metadata about the file.""",
-                strict=True
-            )
-        except ImportError:
-            raise ImportError("autogen-core is required. Install with: pip install autogen-core")
+        # TODO: Implement this method
+        # 1. Create and return a FunctionTool instance that wraps self.reader_instance.read_json_report
+        # 2. Include an appropriate description explaining what the tool does
+        # 3. Set strict=True for the FunctionTool
+        # 4. Handle ImportError if autogen-core is not installed
+        # Hint: The description should explain that this tool reads JSON profiling reports,
+        #       accepts file paths, and returns formatted string output
+        raise NotImplementedError("Student implementation required")

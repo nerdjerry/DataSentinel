@@ -21,15 +21,11 @@ class SnowflakeDataProfilingToolFactory:
         Returns:
             FunctionTool: AutoGen tool for profiling data with ydata-profiling
         """
-        try:
-            return FunctionTool(
-                self.profiling_instance.profile_data,
-                description="""Profile a Snowflake dataset using ydata-profiling. 
-                Executes a SQL query, analyzes the data quality, and generates comprehensive 
-                interactive HTML and JSON reports with statistics, correlations, missing values analysis, 
-                and visualizations. Returns metrics including null counts, data types, distributions, 
-                correlations, and quality scores.""",
-                strict=True
-            )
-        except ImportError:
-            raise ImportError("autogen-core is required. Install with: pip install autogen-core")
+        # TODO: Implement this method
+        # 1. Create and return a FunctionTool instance
+        # 2. Pass self.profiling_instance.profile_data as the function
+        # 3. Add an appropriate description for the tool
+        # 4. Set strict=True for strict parameter validation
+        # 5. Handle ImportError if autogen-core is not installed
+        
+        pass  # Remove this line when implementing

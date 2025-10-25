@@ -1,0 +1,128 @@
+{
+  "table_name": "RIDEBOOKING",
+  "description": "Ride booking data containing information about ride bookings, cancellations, ratings, and payments",
+  "columns": [
+    {
+      "name": "DATE",
+      "type": "DATE",
+      "description": "Date of the booking"
+    },
+    {
+      "name": "TIME",
+      "type": "TIME",
+      "description": "Time of the booking"
+    },
+    {
+      "name": "BOOKING_ID",
+      "type": "VARCHAR",
+      "description": "Unique identifier for each ride booking"
+    },
+    {
+      "name": "Booking Status",
+      "type": "VARCHAR",
+      "description": "Status of booking (Completed, Cancelled by Customer, Cancelled by Driver, etc.)"
+    },
+    {
+      "name": "CUSTOMER_ID",
+      "type": "VARCHAR",
+      "description": "Unique identifier for customers"
+    },
+    {
+      "name": "VEHICLE_TYPE",
+      "type": "VARCHAR",
+      "description": "Type of vehicle (Go Mini, Go Sedan, Auto, eBike/Bike, UberXL, Premier Sedan)"
+    },
+    {
+      "name": "PICKUP_LOCATION",
+      "type": "VARCHAR",
+      "description": "Starting location of the ride"
+    },
+    {
+      "name": "DROP_LOCATION",
+      "type": "VARCHAR",
+      "description": "Destination location of the ride"
+    },
+    {
+      "name": "AVG_VTAT",
+      "type": "DECIMAL",
+      "description": "Average time for driver to reach pickup location (in minutes)",
+      "unit": "minutes"
+    },
+    {
+      "name": "AVG_CTAT",
+      "type": "DECIMAL",
+      "description": "Average trip duration from pickup to destination (in minutes)",
+      "unit": "minutes"
+    },
+    {
+      "name": "CANCELLED_RIDES_BY_CUSTOMER",
+      "type": "VARCHAR",
+      "description": "Customer-initiated cancellation flag"
+    },
+    {
+      "name": "REASON_FOR_CANCELLING_BY_CUSTOMER",
+      "type": "VARCHAR",
+      "description": "Reason for customer cancellation"
+    },
+    {
+      "name": "CANCELLED_RIDES_BY_DRIVER",
+      "type": "VARCHAR",
+      "description": "Driver-initiated cancellation flag"
+    },
+    {
+      "name": "DRIVER_CANCELLATION_REASON",
+      "type": "VARCHAR",
+      "description": "Reason for driver cancellation"
+    },
+    {
+      "name": "INCOMPLETE_RIDES",
+      "type": "VARCHAR",
+      "description": "Incomplete ride flag"
+    },
+    {
+      "name": "INCOMPLETE_RIDES_REASON",
+      "type": "VARCHAR",
+      "description": "Reason for incomplete rides"
+    },
+    {
+      "name": "BOOKING_VALUE",
+      "type": "DECIMAL",
+      "description": "Total fare amount for the ride",
+      "note": "May contain string 'null' values - use TRY_CAST for numeric operations"
+    },
+    {
+      "name": "RIDE_DISTANCE",
+      "type": "DECIMAL",
+      "description": "Distance covered during the ride (in km)",
+      "unit": "km",
+      "note": "May contain string 'null' values - use TRY_CAST for numeric operations"
+    },
+    {
+      "name": "DRIVER_RATINGS",
+      "type": "DECIMAL",
+      "description": "Rating given to driver (1-5 scale)",
+      "scale": "1-5"
+    },
+    {
+      "name": "CUSTOMER_RATING",
+      "type": "DECIMAL",
+      "description": "Rating given by customer (1-5 scale)",
+      "scale": "1-5"
+    },
+    {
+      "name": "PAYMENT_METHOD",
+      "type": "VARCHAR",
+      "description": "Method used for payment (UPI, Cash, Credit Card, Uber Wallet, Debit Card)"
+    }
+  ],
+  "data_quality_notes": [
+    "Some numeric columns (BOOKING_VALUE, RIDE_DISTANCE) may contain string 'null' values instead of SQL NULL",
+    "Use TRY_CAST() function when performing numeric operations on potentially null columns",
+    "Example: TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))"
+  ],
+  "common_queries": {
+    "daily_aggregation": "SELECT DATE, COUNT(*) as total_bookings, AVG(TRY_CAST(BOOKING_VALUE AS DECIMAL(10,2))) as avg_booking_value FROM RIDEBOOKING GROUP BY DATE",
+    "vehicle_type_analysis": "SELECT VEHICLE_TYPE, COUNT(*) as bookings, AVG(TRY_CAST(RIDE_DISTANCE AS DECIMAL(10,2))) as avg_distance FROM RIDEBOOKING GROUP BY VEHICLE_TYPE",
+    "cancellation_analysis": "SELECT BOOKING_STATUS, COUNT(*) as count FROM RIDEBOOKING WHERE BOOKING_STATUS LIKE '%Cancel%' GROUP BY BOOKING_STATUS"
+  }
+}
